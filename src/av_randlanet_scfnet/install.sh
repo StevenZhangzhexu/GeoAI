@@ -1,6 +1,6 @@
 # randlanet
-conda create -n randlanet python=3.6
-conda activate randlanet
+# conda create -n randlanet python=3.6
+# conda activate randlanet
 
 pip install -r helper_requirements.txt
 sh compile_op.sh
