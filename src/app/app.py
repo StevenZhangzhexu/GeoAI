@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from pydantic import BaseModel
 from typing import List
-# from av_randlanet import main_OrchardRoad
+from src.av_randlanet_scfnet import main_OrchardRoad
 
 
 app = FastAPI(title="API for Geospatial AI")
@@ -9,6 +9,11 @@ app = FastAPI(title="API for Geospatial AI")
 
 class PointCloud(BaseModel):
     pcd_url: str
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello GeoAI!"}
 
 
 @app.post("/upload")
@@ -56,8 +61,7 @@ def upload_multiple(files: List[UploadFile] = File(...)):
 
 @app.post("/predict", status_code=200)
 async def predict(request: PointCloud):
-    # prediction = main_OrchardRoad(request.pcd_url)
-    prediction = {"status_code": 200, "detail": "okay"}
+    prediction = main_OrchardRoad.main(request.pcd_filename)
     if not prediction:
         # the exception is raised, not returned - you will get a validation
         # error otherwise.

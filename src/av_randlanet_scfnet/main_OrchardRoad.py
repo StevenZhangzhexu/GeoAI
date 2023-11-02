@@ -17,7 +17,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 
 class OrchardRoad:
-    def __init__(self, mode='train'):
+    def __init__(self, filename):
         self.name = 'OrchardRoad'
         self.path = 'data/orchard_road'
         self.label_to_names = {
@@ -40,19 +40,8 @@ class OrchardRoad:
         self.label_to_idx = {l: i for i, l in enumerate(self.label_values)}
         self.ignored_labels = np.sort([])
 
-        self.full_pc_folder = join(self.path, 'original_las')
-        self.test_pc_folder = join(self.path, 'original_las')
-
-        # Initial training-validation-testing files
-        self.train_files = ['Orchard_0913_labelled_A', 'Orchard_0913_labelled_B', 'Orchard_0913_labelled_C', 'Orchard_0913_labelled_D']
-        self.val_files = ['Orchard_0913_labelled_E']
-        self.test_files = ['Orchard_0913_labelled_E']
-
-        self.val_split = 3
-
-        self.train_files = [os.path.join(self.full_pc_folder, files + '.laz') for files in self.train_files]
-        self.val_files = [os.path.join(self.full_pc_folder, files + '.laz') for files in self.val_files]
-        self.test_files = [os.path.join(self.full_pc_folder, files + '.laz') for files in self.test_files]
+        self.test_pc_folder = join(self.path, 'user_input')
+        self.test_files = [join(self.test_pc_folder, filename)]
 
         # Initiate containers
         self.val_proj = []
@@ -63,30 +52,20 @@ class OrchardRoad:
         self.possibility = {}
         self.min_possibility = {}
         self.class_weight = {}
-        self.input_trees = {'training': [], 'validation': [], 'test': []}
-        self.input_colors = {'training': [], 'validation': [], 'test': []}
-        self.input_labels = {'training': [], 'validation': []}
+        self.input_trees = {'test': []}
+        self.input_colors = {'test': []}
 
-        self.load_sub_sampled_clouds(cfg.sub_grid_size, mode)
+        self.load_sub_sampled_clouds(cfg.sub_grid_size)
 
-    def load_sub_sampled_clouds(self, sub_grid_size, mode):
+    def load_sub_sampled_clouds(self, sub_grid_size):
 
         tree_path = join(self.path, 'input_{:.3f}'.format(sub_grid_size))
-        if mode == 'test':
-            files = self.test_files
-        else: 
-            files = np.hstack((self.train_files, self.val_files))
+        files = self.test_files
 
         for i, file_path in enumerate(files):
             cloud_name = file_path.split('/')[-1][:-4]
             print('Load_pc_' + str(i) + ': ' + cloud_name)
-            if mode == 'test':
-                cloud_split = 'test'
-            else:
-                if file_path in self.val_files:
-                    cloud_split = 'validation'
-                else:
-                    cloud_split = 'training'
+            cloud_split = 'test'
 
             # Name of the input files
             kd_tree_file = join(tree_path, '{:s}_KDTree.pkl'.format(cloud_name))
@@ -100,7 +79,7 @@ class OrchardRoad:
             elif cfg.use_rgb and not cfg.use_intensity:
                 sub_colors = np.vstack((data['red'], data['green'], data['blue'])).T
             elif not cfg.use_rgb and cfg.use_intensity:
-                sub_colors = data['intensity'].reshape(-1,1)
+                sub_colors = data['intensity'].reshape(-1, 1)
             else:
                 sub_colors = np.ones((data.shape[0],1))
             if cloud_split == 'test':
@@ -331,70 +310,29 @@ class OrchardRoad:
         self.test_init_op = iter.make_initializer(self.batch_test_data)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--gpu', type=int, default=0, help='the number of GPUs to use [default: 0]')
-    parser.add_argument('--mode', type=str, default='test', help='options: train, test, vis')
-    parser.add_argument('--model_path', type=str, default=None, help='pretrained model path')
-    parser.add_argument('--test_eval', type=bool, default=True, help='evaluate test result on Orchard_E')
-    FLAGS = parser.parse_args()
-
-    GPU_ID = FLAGS.gpu
+def main(pcd_filename):
+    GPU_ID = 0
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = str(GPU_ID)
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-    Mode = FLAGS.mode
-    dataset = OrchardRoad(mode=Mode)
+    dataset = OrchardRoad(pcd_filename)
 
-    # load snapshot
-    # if FLAGS.model_path is not 'None':
-    #     chosen_snap = FLAGS.model_path
-    # else:
-    if cfg.resume:
-        chosen_snapshot = -1
-        logs = np.sort([os.path.join('results', f) for f in os.listdir('results') if f.startswith('Log')])
-        chosen_folder = logs[-1]
-        snap_path = join(chosen_folder, 'snapshots')    # 'checkpoints/snapshots/' for defined saving_path
-        snap_steps = [int(f[:-5].split('-')[-1]) for f in os.listdir(snap_path) if f[-5:] == '.meta']
-        chosen_step = np.sort(snap_steps)[chosen_snapshot]
-        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+    # checkpoint directory
+    chosen_snapshot = -1
+    logs = np.sort([os.path.join('results', f) for f in os.listdir('results') if f.startswith('Log')])
+    chosen_folder = logs[-1]
+    snap_path = join(chosen_folder, 'snapshots')  # 'checkpoints/snapshots/' for defined saving_path
+    snap_steps = [int(f[:-5].split('-')[-1]) for f in os.listdir(snap_path) if f[-5:] == '.meta']
+    chosen_step = np.sort(snap_steps)[chosen_snapshot]
+    chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
 
-    if Mode == 'train':
-        dataset.init_train_pipeline()
-        model = Network(dataset, cfg)
-        if cfg.resume:
-            model.saver.restore(model.sess, chosen_snap)
-            print("Model restored from " + chosen_snap)
-        print("Starting training...")
-        model.train(dataset)
-        
-    elif Mode == 'test':
-        cfg.saving = False
-        dataset.init_test_pipeline()
-        model = Network(dataset, cfg)
+    # prediction
+    cfg.saving = False
+    dataset.init_test_pipeline()
+    model = Network(dataset, cfg)
 
-        tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
-        if FLAGS.test_eval:
-            print("Starting evaluation...")
-            tester.test(model, dataset, eval=True)
-        else:
-            print("Starting testing...")
-            tester.test(model, dataset)
-
-    else:
-        ##################
-        # Visualize data #
-        ##################
-
-        print("Starting visualization...")
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            sess.run(dataset.train_init_op)
-            while True:
-                flat_inputs = sess.run(dataset.flat_inputs)
-                pc_xyz = flat_inputs[0]
-                sub_pc_xyz = flat_inputs[1]
-                labels = flat_inputs[21]
-                Plot.draw_pc_sem_ins(pc_xyz[0, :, :], labels[0, :])
-                Plot.draw_pc_sem_ins(sub_pc_xyz[0, :, :], labels[0, 0:np.shape(sub_pc_xyz)[1]])
+    tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
+    print("Starting prediction...")
+    tester.test(model, dataset)
+    print("Prediction finished!")
