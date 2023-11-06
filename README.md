@@ -1,4 +1,4 @@
-# GeoAI-FastAPI
+# GeoAI API Server
 REST API server for serving the GeoAI models in production
 
 ## Installation
