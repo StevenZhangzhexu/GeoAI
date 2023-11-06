@@ -1,10 +1,14 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+
 from pydantic import BaseModel
 from typing import List
 from src.av_randlanet_scfnet import main_OrchardRoad
 
 
 app = FastAPI(title="API for Geospatial AI")
+templates = Jinja2Templates(directory="templates")
 
 
 class PointCloud(BaseModel):
@@ -16,8 +20,14 @@ async def root():
     return {"message": "Hello GeoAI!"}
 
 
-@app.post("/upload")
-def upload(file: UploadFile = File(...)):
+@app.get("/upload", response_class=HTMLResponse)
+async def upload_page(request: Request):
+
+    return templates.TemplateResponse("file_upload_form.html", {"request": request})
+
+
+@app.post("/upload_single")
+def upload_single(file: UploadFile = File(...)):
     try:
         contents = file.file.read()
         with open(file.filename, 'wb') as f:
