@@ -1,12 +1,11 @@
 from os import makedirs
-from os.path import exists, join
+from os.path import join
 
 from av_randlanet_scfnet.utils.helper_ply import read_ply, write_ply
 from av_randlanet_scfnet.utils.helper_las import read_las, write_laz
 import tensorflow as tf
 import numpy as np
 import time
-from sklearn.metrics import confusion_matrix
 
 
 def log_string(out_str, log_out):
@@ -68,11 +67,10 @@ class ModelTester:
 
             try:
                 ops = (self.prob_logits,
-                       model.labels,
                        model.inputs['input_inds'],
                        model.inputs['cloud_inds'],)
 
-                stacked_probs, stacked_labels, point_idx, cloud_idx = self.sess.run(ops, {model.is_training: False})
+                stacked_probs, point_idx, cloud_idx = self.sess.run(ops, {model.is_training: False})
                 stacked_probs = np.reshape(stacked_probs, [model.config.val_batch_size, model.config.num_points,
                                                            model.config.num_classes])
 
@@ -106,10 +104,7 @@ class ModelTester:
                     i_test = 0
                     for i, file_path in enumerate(files):
                         # Get file
-                        if eval:
-                            points, gt = self.load_evaluation_points(file_path)
-                        else:
-                            points = self.load_test_points(file_path)
+                        points = self.load_test_points(file_path)
 
                         # Reproject probs
                         probs = np.zeros(shape=[np.shape(points)[0], 8], dtype=np.float16)
@@ -135,12 +130,8 @@ class ModelTester:
                         # Save laz
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
-                        write_laz(pred_filepath, test_las, points, gt, preds)
+                        write_laz(pred_filepath, test_las, points, preds)
                         log_string(pred_filepath + ' has been saved.', self.log_out)
-
-                        # evaluate prediction results
-                        if eval:
-                            self.evaluate(preds, gt)
 
                         i_test += 1
 
@@ -159,60 +150,3 @@ class ModelTester:
     def load_test_points(file_path):
         data = read_ply(file_path)
         return np.vstack((data['x'], data['y'], data['z'])).T
-    
-    @staticmethod
-    def load_evaluation_points(file_path):
-        print("loading from", file_path)
-        data = read_las(file_path)
-        xyz = np.vstack((data.x, data.y, data.z)).T
-        label = data.label.astype(np.uint8)
-        return xyz, label
-    
-    def evaluate(self, pred, gt):
-        gt_classes = [0 for _ in range(self.config.num_classes)]
-        positive_classes = [0 for _ in range(self.config.num_classes)]
-        true_positive_classes = [0 for _ in range(self.config.num_classes)]
-        val_total_correct = 0
-        val_total_seen = 0
-
-        if not self.config.ignored_label_inds:
-            pred_valid = pred
-            labels_valid = gt
-        else:
-            invalid_idx = np.where(gt == self.config.ignored_label_inds)[0]
-            labels_valid = np.delete(gt, invalid_idx)
-            labels_valid = labels_valid - 1
-            pred_valid = np.delete(pred, invalid_idx)
-            pred_valid = pred_valid - 1
-
-        correct = np.sum(pred_valid == labels_valid)
-        val_total_correct += correct
-        val_total_seen += len(labels_valid)
-
-        conf_matrix = confusion_matrix(labels_valid, pred_valid, np.arange(0, self.config.num_classes, 1))
-        gt_classes += np.sum(conf_matrix, axis=1)
-        positive_classes += np.sum(conf_matrix, axis=0)
-        true_positive_classes += np.diagonal(conf_matrix)
-
-        iou_list = []
-        for n in range(0, self.config.num_classes, 1):
-            iou = 0.0
-            try:
-                iou = true_positive_classes[n] / float(gt_classes[n] + positive_classes[n] - true_positive_classes[n])
-            except Exception as err:
-                print(err)
-            iou_list.append(iou)
-        mean_iou = sum(iou_list) / float(self.config.num_classes)
-
-        log_string('eval accuracy: {}'.format(val_total_correct / float(val_total_seen)), self.log_out)
-        log_string('mean IOU:{}'.format(mean_iou), self.log_out)
-
-        mean_iou = 100 * mean_iou
-        log_string('Mean IoU = {:.1f}%'.format(mean_iou), self.log_out)
-        s = '{:5.2f} | '.format(mean_iou)
-        for IoU in iou_list:
-            s += '{:5.2f} '.format(100 * IoU)
-        log_string('-' * len(s), self.log_out)
-        log_string(s, self.log_out)
-        log_string('-' * len(s) + '\n', self.log_out)
-        return mean_iou

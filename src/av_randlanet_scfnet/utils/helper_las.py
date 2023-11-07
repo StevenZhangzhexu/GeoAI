@@ -14,14 +14,13 @@ def read_las(pcd_filepath):
     return las_reader
 
 
-def write_laz(save_filepath, original_las, points, labels, preds):
+def write_laz(save_filepath, original_las, points, preds):
     # Add extension if not there
     if not save_filepath.endswith('.laz'):
         save_filepath = save_filepath[:-4] + '.laz'
 
     # 1. Create a new header
     header = laspy.LasHeader(point_format=3, version="1.2")
-    header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
     header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
     header.offsets = np.min(points, axis=0)
     header.scales = np.array([0.1, 0.1, 0.1])
@@ -37,7 +36,6 @@ def write_laz(save_filepath, original_las, points, labels, preds):
     for attr_name in attributes_to_transfer:
         setattr(las_writer, attr_name, getattr(original_las, attr_name))
 
-    las_writer.label = labels
     las_writer.pred = preds
 
     las_writer.write(save_filepath)

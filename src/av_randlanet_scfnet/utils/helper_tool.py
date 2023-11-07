@@ -23,7 +23,7 @@ class ConfigOrchardRoad:
     sub_grid_size = 0.06  # preprocess_parameter
     use_rgb = True     # Use RGB
     use_intensity = True   # Use intensity
-    resume = True   # resume from checkpoint
+    resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
@@ -40,7 +40,7 @@ class ConfigOrchardRoad:
 
     train_sum_dir = 'train_log'
     saving = True
-    saving_path = None
+    saving_path = 'av_randlanet_scfnet/results/'
 
     augment_scale_anisotropic = True
     augment_symmetries = [True, False, False]
