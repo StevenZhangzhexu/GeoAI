@@ -112,6 +112,7 @@ class ModelTester:
                         probs = self.test_probs[i_test][proj_index, :]
 
                         # Get the predicted labels
+                        print(np.unique(np.argmax(probs, axis=1)))
                         preds = dataset.label_values[np.argmax(probs, axis=1)].astype(np.uint8)
 
                         # Save laz
