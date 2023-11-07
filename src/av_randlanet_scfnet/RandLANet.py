@@ -27,7 +27,8 @@ class Network:
                 self.saving_path = time.strftime('results/Log_%Y-%m-%d_%H-%M-%S', time.gmtime())
             else:
                 self.saving_path = self.config.saving_path
-            makedirs(self.saving_path) if not exists(self.saving_path) else None
+            # makedirs(self.saving_path) if not exists(self.saving_path) else None
+            makedirs(self.saving_path, exist_ok=True)
 
         with tf.variable_scope('inputs'):
             self.inputs = dict()

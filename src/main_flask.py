@@ -9,8 +9,8 @@ def upload():
     return render_template("file_upload_form.html")  
 
 
-@app.route('/success', methods=['POST'])
-def success():  
+@app.route('/result', methods=['POST'])
+def result():
     if request.method == 'POST':
         f = request.files['file']
 

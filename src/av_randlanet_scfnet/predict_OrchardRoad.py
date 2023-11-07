@@ -4,10 +4,11 @@ from av_randlanet_scfnet.RandLANet import Network
 from av_randlanet_scfnet.tester_OrchardRoad import ModelTester
 from av_randlanet_scfnet.utils.helper_tool import ConfigOrchardRoad as cfg
 from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
+from av_randlanet_scfnet.utils.helper_ply import read_ply
+
 import tensorflow as tf
 import numpy as np
 import pickle, os
-import laspy
 
 from tensorflow.python.util import deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
@@ -16,7 +17,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 class OrchardRoad:
     def __init__(self, filepath=''):
         self.name = 'OrchardRoad'
-        self.path = 'data/orchard_road'
+        self.path = 'av_randlanet_scfnet/data/orchard_road'
         self.label_to_names = {
                         0: 'Bollard',
                         1: 'Building',
@@ -56,28 +57,51 @@ class OrchardRoad:
         self.input_trees = {'predict': []}
         self.input_colors = {'predict': []}
 
-        # self.load_sub_sampled_clouds(cfg.sub_grid_size)
-        self.load_point_clouds()
+        self.load_sub_sampled_clouds(cfg.sub_grid_size)
 
-    def load_point_clouds(self):
+    def load_sub_sampled_clouds(self, sub_grid_size):
+
+        tree_path = join(self.path, 'input_{:.3f}'.format(sub_grid_size))
         files = self.test_files
 
         for i, file_path in enumerate(files):
-            cloud_name = self.test_inputs[i]
+            cloud_name = file_path.split('/')[-1][:-4]
             print('Load_pc_' + str(i) + ': ' + cloud_name)
-            data = laspy.read(file_path)
+            cloud_split = 'predict'
 
+            # Name of the input files
+            kd_tree_file = join(tree_path, '{:s}_KDTree.pkl'.format(cloud_name))
+            sub_ply_file = join(tree_path, '{:s}.ply'.format(cloud_name))
+
+            # read ply with data
+            data = read_ply(sub_ply_file)
             # read RGB / intensity accoring to configuration
-            sub_colors = np.vstack((data.red, data.green, data.blue, data.intensity)).T
+            if cfg.use_rgb and cfg.use_intensity:
+                sub_colors = np.vstack((data['red'], data['green'], data['blue'], data['intensity'])).T
+            elif cfg.use_rgb and not cfg.use_intensity:
+                sub_colors = np.vstack((data['red'], data['green'], data['blue'])).T
+            elif not cfg.use_rgb and cfg.use_intensity:
+                sub_colors = data['intensity'].reshape(-1, 1)
+            else:
+                sub_colors = np.ones((data.shape[0],1))
 
-            # if cfg.use_rgb and cfg.use_intensity:
-            #     sub_colors = np.vstack((data.red, data.green, data.blue, data.intensity)).T
-            # elif cfg.use_rgb and not cfg.use_intensity:
-            #     sub_colors = np.vstack((data.red, data.green, data.blue)).T
-            # elif not cfg.use_rgb and cfg.use_intensity:
-            #     sub_colors = data['intensity'].reshape(-1, 1)
-            # else:
-            #     sub_colors = np.ones((data.shape[0], 1))
+            # Read pkl with search tree
+            with open(kd_tree_file, 'rb') as f:
+                search_tree = pickle.load(f)
+
+            self.input_trees[cloud_split] += [search_tree]
+            self.input_colors[cloud_split] += [sub_colors]
+
+            # Get test re_projection indices
+            if cloud_split == 'test':
+                print('\nPreparing reprojection indices for {}'.format(cloud_name))
+                proj_file = join(tree_path, '{:s}_proj.pkl'.format(cloud_name))
+                with open(proj_file, 'rb') as f:
+                    proj_idx = pickle.load(f)
+                self.test_proj += [proj_idx]
+
+        print('finished')
+        return
 
     # Generate the input data flow
     def get_batch_gen(self, split="predict"):
@@ -130,10 +154,8 @@ class OrchardRoad:
                 queried_pc_xyz = points[query_idx]
                 queried_pc_xyz[:, 0:2] = queried_pc_xyz[:, 0:2] - pick_point[:, 0:2]
                 queried_pc_colors = self.input_colors[split][cloud_idx][query_idx]
-                # print("queried_pc_colors:", queried_pc_colors)
 
                 # if split == 'test':
-                queried_pc_labels = np.zeros(queried_pc_xyz.shape[0])
                 queried_pt_weight = 1
 
                 # Update the possibility of the selected points
@@ -145,7 +167,6 @@ class OrchardRoad:
                 if True:
                     yield (queried_pc_xyz,
                            queried_pc_colors.astype(np.float32),
-                           queried_pc_labels,
                            query_idx.astype(np.int32),
                            np.array([cloud_idx], dtype=np.int32))
 
