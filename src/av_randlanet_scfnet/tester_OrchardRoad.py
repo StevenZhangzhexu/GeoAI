@@ -109,11 +109,8 @@ class ModelTester:
                         # Reproject probs
                         proj_index = dataset.test_proj[i_test]
 
-                        probs = self.test_probs[i_test][proj_index, :]
-
+                        probs = self.test_probs[i_test][proj_index, :][0]
                         print(probs.shape)
-                        print(probs[0].shape)
-                        print(probs[0][0].shape)
 
                         # Get the predicted labels
                         preds = dataset.label_values[np.argmax(probs, axis=1)].astype(np.uint8)
