@@ -47,7 +47,7 @@ def separate_segmented_point_clouds(filename):
     print(segment_ids)
 
     for segment_id in segment_ids:
-        segment_points = inFile.points[inFile.label == segment_id]
+        segment_points = inFile.points[inFile.pred == segment_id]
         coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
         print(label_to_names[segment_id], len(coordinates))
 
