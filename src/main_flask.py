@@ -31,8 +31,6 @@ def result():
             # post-process
             separate_predicted_objects.separate_segmented_point_clouds(f.filename)
 
-            # upload the predictions (if required)
-
             return render_template("success.html", name=f.filename)
         except Exception as err:
             print(err)
