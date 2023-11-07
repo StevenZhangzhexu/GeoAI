@@ -4,7 +4,7 @@ from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_o
 
 print("Starting...")
 filename = 'Orchard_0913_labelled_E.laz'
-file_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs/%s' % filename
+file_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs/Orchard_0913_labelled_E.laz'
 
 # pre-process
 print("pre-processing data...")
