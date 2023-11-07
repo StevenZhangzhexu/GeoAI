@@ -279,7 +279,3 @@ def predict(filepath):
     tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
     print("Starting prediction...")
     tester.test(model, dataset, filepath.split('/')[-1])
-
-
-if __name__ == '__main__':
-    predict('Orchard_0913_labelled_E.laz')
