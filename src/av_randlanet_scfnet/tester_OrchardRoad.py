@@ -1,10 +1,10 @@
 from os import makedirs
 from os.path import join
 
-from av_randlanet_scfnet.utils.helper_ply import read_ply, write_ply
 from av_randlanet_scfnet.utils.helper_las import read_las, write_laz
 import tensorflow as tf
 import numpy as np
+import laspy
 import time
 
 
@@ -148,5 +148,5 @@ class ModelTester:
 
     @staticmethod
     def load_test_points(file_path):
-        data = read_ply(file_path)
-        return np.vstack((data['x'], data['y'], data['z'])).T
+        data = read_las(file_path)
+        return np.vstack((data.x, data.y, data.z)).T
