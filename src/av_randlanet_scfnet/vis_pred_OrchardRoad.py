@@ -55,9 +55,8 @@ def main():
     v.set_lut("pred", lut)
 
     chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
-    pred_path = os.path.join(chosen_folder, 'predictions')
     pc_names = ["Orchard_0913_labelled_E.laz"]
-    pcs_with_pred = prepare_custom_data(pc_names, pred_path)
+    pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
 
     print("Visualizing predictions...")
     v.visualize(pcs_with_pred)
