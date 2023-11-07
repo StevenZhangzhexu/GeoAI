@@ -3,10 +3,10 @@ from av_randlanet_scfnet.RandLANet import Network
 # from SCFNet import Network
 from av_randlanet_scfnet.tester_OrchardRoad import ModelTester
 from av_randlanet_scfnet.utils.helper_tool import ConfigOrchardRoad as cfg
+from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
 import tensorflow as tf
 import numpy as np
 import pickle, os
-import gdown
 import laspy
 
 from tensorflow.python.util import deprecation
@@ -14,7 +14,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 
 class OrchardRoad:
-    def __init__(self, pcd_url=''):
+    def __init__(self, filepath=''):
         self.name = 'OrchardRoad'
         self.path = 'data/orchard_road'
         self.label_to_names = {
@@ -38,16 +38,11 @@ class OrchardRoad:
         self.ignored_labels = np.sort([])
 
         self.test_pc_folder = join(self.path, 'test_inputs')
-        try:
-            if pcd_url:
-                gdown.download(pcd_url, output='input.laz')
-        except Exception as err:
-            print(err)
 
         # Initial training-validation-testing files
-        # self.test_files = ['input.laz']
-        self.test_inputs = ['Orchard_0913_labelled_E.laz']
-        self.test_files = [os.path.join(self.test_pc_folder, files) for files in self.test_inputs]
+        self.test_inputs = [filepath.split("/")[-1]]
+        # self.test_files = [os.path.join(self.test_pc_folder, files) for files in self.test_inputs]
+        self.test_files = [filepath]
 
         # Initiate containers
         self.val_proj = []
@@ -58,9 +53,8 @@ class OrchardRoad:
         self.possibility = {}
         self.min_possibility = {}
         self.class_weight = {}
-        self.input_trees = {'training': [], 'validation': [], 'test': []}
-        self.input_colors = {'training': [], 'validation': [], 'test': []}
-        self.input_labels = {'training': [], 'validation': []}
+        self.input_trees = {'predict': []}
+        self.input_colors = {'predict': []}
 
         # self.load_sub_sampled_clouds(cfg.sub_grid_size)
         self.load_point_clouds()
@@ -86,13 +80,8 @@ class OrchardRoad:
             #     sub_colors = np.ones((data.shape[0], 1))
 
     # Generate the input data flow
-    def get_batch_gen(self, split):
-        if split == 'training':
-            num_per_epoch = cfg.train_steps * cfg.batch_size
-        elif split == 'validation':
-            num_per_epoch = cfg.val_steps * cfg.val_batch_size
-        elif split == 'test':
-            num_per_epoch = cfg.val_steps * cfg.val_batch_size
+    def get_batch_gen(self, split="predict"):
+        num_per_epoch = cfg.val_steps * cfg.val_batch_size
         
         # assign number of features according to input
         n_features = 1  # use xyz only by default
@@ -110,11 +99,6 @@ class OrchardRoad:
         for i, tree in enumerate(self.input_trees[split]):
             self.possibility[split] += [np.random.rand(tree.data.shape[0]) * 1e-3]
             self.min_possibility[split] += [float(np.min(self.possibility[split][-1]))]
-
-        if split != 'test':
-            _, num_class_total = np.unique(np.hstack(self.input_labels[split]), return_counts=True)
-            self.class_weight[split] += [np.squeeze([num_class_total / np.sum(num_class_total)], axis=0)]
-            # print(num_class_total, self.class_weight)
 
         def spatially_regular_gen():
 
@@ -151,16 +135,6 @@ class OrchardRoad:
                 # if split == 'test':
                 queried_pc_labels = np.zeros(queried_pc_xyz.shape[0])
                 queried_pt_weight = 1
-                # else:
-                if split != 'test':
-                    try:
-                        queried_pc_labels = self.input_labels[split][cloud_idx][query_idx]
-                        queried_pc_labels = np.array([self.label_to_idx[l] for l in queried_pc_labels])
-                        # print(len(queried_pc_labels), "queried_pc_labels:", np.unique(queried_pc_labels))
-                        # print(self.class_weight[split], self.class_weight[split][0])
-                        queried_pt_weight = np.array([self.class_weight[split][0][n] for n in queried_pc_labels])
-                    except Exception as err:
-                        print(err)
 
                 # Update the possibility of the selected points
                 dists = np.sum(np.square((points[query_idx] - pick_point).astype(np.float32)), axis=1)
