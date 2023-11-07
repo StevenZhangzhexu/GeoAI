@@ -28,7 +28,7 @@ def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data
     intensity = pc.intensity.astype(np.uint8).reshape(-1, 1)
 
     #  Subsample to save space
-    sub_xyz, sub_colors, _ = DP.grid_sub_sampling(xyz, features=color, labels=None, grid_size=grid_size)
+    sub_xyz, sub_colors = DP.grid_sub_sampling(xyz, features=color, labels=None, grid_size=grid_size)
     _, sub_intensity = DP.grid_sub_sampling(xyz, features=intensity, labels=None, grid_size=grid_size)
 
     sub_colors = sub_colors / 255.0
