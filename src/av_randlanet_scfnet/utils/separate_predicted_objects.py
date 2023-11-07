@@ -35,17 +35,16 @@ def save_separate_laz_point_cloud(output_file_path, points):
     print(len(points), "point cloud saved to:", output_file_path)
 
 
-def separate_segmented_point_clouds(input_file):
-    inFile = laspy.read(input_file)
+def separate_segmented_point_clouds(filename):
+    pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
+    output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
+    os.makedirs(output_dir, exist_ok=True)
 
+    inFile = laspy.read(os.path.join(pred_dir, filename[:-4] + '.laz'))
     print(len(inFile.points))
 
-    segment_ids = set(np.unique(inFile.label))
+    segment_ids = set(np.unique(inFile.pred))
     print(segment_ids)
-    filename = input_file.split('/')[-1]
-
-    output_directory = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
-    os.makedirs(output_directory, exist_ok=True)
 
     for segment_id in segment_ids:
         segment_points = inFile.points[inFile.label == segment_id]
@@ -67,5 +66,5 @@ def separate_segmented_point_clouds(input_file):
             cluster_points = coordinates[clustering.labels_ == cluster_label]
 
             # Save the cluster as a separate .laz file
-            output_file = os.path.join(output_directory, f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
+            output_file = os.path.join(output_dir, f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
             save_separate_laz_point_cloud(output_file, cluster_points)

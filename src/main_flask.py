@@ -29,7 +29,7 @@ def result():
             predict_OrchardRoad.predict(filepath=file_path)
 
             # post-process
-            separate_predicted_objects.separate_segmented_point_clouds(file_path)
+            separate_predicted_objects.separate_segmented_point_clouds(f.filename)
 
             # upload the predictions (if required)
 
