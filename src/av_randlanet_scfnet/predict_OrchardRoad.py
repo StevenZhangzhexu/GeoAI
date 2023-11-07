@@ -260,7 +260,7 @@ class OrchardRoad:
         self.test_init_op = iter.make_initializer(self.batch_test_data)
 
 
-def predict(filepath=""):
+def predict(filepath):
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -268,12 +268,9 @@ def predict(filepath=""):
 
     dataset = OrchardRoad(filepath)
 
-    chosen_snapshot = -1
-    logs = np.sort([os.path.join('results', f) for f in os.listdir('results') if f.startswith('Log')])
-    chosen_folder = logs[-1]
-    snap_path = join(chosen_folder, 'snapshots')    # 'checkpoints/snapshots/' for defined saving_path
+    snap_path = 'av_randlanet_scfnet/checkpoints'
     snap_steps = [int(f[:-5].split('-')[-1]) for f in os.listdir(snap_path) if f[-5:] == '.meta']
-    chosen_step = np.sort(snap_steps)[chosen_snapshot]
+    chosen_step = np.sort(snap_steps)[-1]
     chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
 
     dataset.init_predict_pipeline()
@@ -281,8 +278,4 @@ def predict(filepath=""):
 
     tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
     print("Starting prediction...")
-    tester.test(model, dataset)
-
-
-if __name__ == '__main__':
-    predict()
+    tester.test(model, dataset, filepath.split('/')[-1])

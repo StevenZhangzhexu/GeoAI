@@ -43,7 +43,7 @@ class ModelTester:
         self.config = config
         self.log_out = open('log_test_' + dataset.name + '.txt', 'a')
 
-    def test(self, model, dataset, num_votes=100, eval=False):
+    def test(self, model, dataset, filename, num_votes=100, eval=False):
 
         # Smoothing parameter for votes
         test_smooth = 0.98
@@ -52,11 +52,8 @@ class ModelTester:
         self.sess.run(dataset.test_init_op)
 
         # Test saving path
-        saving_path = time.strftime('results/Log_%Y-%m-%d_%H-%M-%S', time.gmtime())
-        test_path = join('test', saving_path.split('/')[-1])
-        makedirs(test_path) if not exists(test_path) else None
-        makedirs(join(test_path, 'predictions')) if not exists(join(test_path, 'predictions')) else None
-        # makedirs(join(test_path, 'probs')) if not exists(join(test_path, 'probs')) else None
+        saving_path = 'av_randlanet_scfnet/results/%s/predictions/' % filename
+        makedirs(saving_path, exist_ok=True)
 
         #####################
         # Network predictions
@@ -136,11 +133,10 @@ class ModelTester:
                         # log_string(ply_name + ' has saved', self.log_out)
 
                         # Save laz
-                        cloud_name = file_path.split('/')[-1]
                         test_las = read_las(file_path)
-                        laz_name = join(test_path, 'predictions', cloud_name)
-                        write_laz(laz_name, test_las, points, gt, preds)
-                        log_string(laz_name + ' has saved', self.log_out)
+                        pred_filepath = join(saving_path, filename)
+                        write_laz(pred_filepath, test_las, points, gt, preds)
+                        log_string(pred_filepath + ' has been saved.', self.log_out)
 
                         # evaluate prediction results
                         if eval:

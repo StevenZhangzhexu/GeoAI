@@ -1,6 +1,7 @@
 import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects
 app = Flask(__name__, static_folder='static/')
 
 
@@ -16,15 +17,21 @@ def result():
 
         try:
             # upload file
-            save_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs'
-            file_path = os.path.join(save_path, f.filename)
-            os.makedirs(save_path, exist_ok=True)
+            upload_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs'
+            file_path = os.path.join(upload_path, f.filename)
+            os.makedirs(upload_path, exist_ok=True)
             f.save(file_path)
 
-            # predict and post-process
+            # pre-process
+            data_prepare_orchard.prepare_data(file_path)
+
+            # predict
             predict_OrchardRoad.predict(filepath=file_path)
 
-            # upload the predictions
+            # post-process
+            separate_predicted_objects.separate_segmented_point_clouds(file_path)
+
+            # upload the predictions (if required)
 
             return render_template("success.html", name=f.filename)
         except Exception as err:
