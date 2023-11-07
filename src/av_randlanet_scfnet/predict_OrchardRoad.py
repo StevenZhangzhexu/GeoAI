@@ -93,12 +93,11 @@ class OrchardRoad:
             self.input_colors[cloud_split] += [sub_colors]
 
             # Get test re_projection indices
-            if cloud_split == 'test':
-                print('\nPreparing reprojection indices for {}'.format(cloud_name))
-                proj_file = join(tree_path, '{:s}_proj.pkl'.format(cloud_name))
-                with open(proj_file, 'rb') as f:
-                    proj_idx = pickle.load(f)
-                self.test_proj += [proj_idx]
+            print('\nPreparing reprojection indices for {}'.format(cloud_name))
+            proj_file = join(tree_path, '{:s}_proj.pkl'.format(cloud_name))
+            with open(proj_file, 'rb') as f:
+                proj_idx = pickle.load(f)
+            self.test_proj += [proj_idx]
 
         print('finished')
         return
@@ -155,7 +154,6 @@ class OrchardRoad:
                 queried_pc_xyz[:, 0:2] = queried_pc_xyz[:, 0:2] - pick_point[:, 0:2]
                 queried_pc_colors = self.input_colors[split][cloud_idx][query_idx]
 
-                # if split == 'test':
                 queried_pt_weight = 1
 
                 # Update the possibility of the selected points
@@ -247,7 +245,7 @@ class OrchardRoad:
     def init_predict_pipeline(self):
         print('Initiating prediction pipelines')
         cfg.ignored_label_inds = [self.label_to_idx[ign_label] for ign_label in self.ignored_labels]
-        gen_function_test, gen_types, gen_shapes = self.get_batch_gen('test')
+        gen_function_test, gen_types, gen_shapes = self.get_batch_gen('predict')
 
         self.test_data = tf.data.Dataset.from_generator(gen_function_test, gen_types, gen_shapes)
         self.batch_test_data = self.test_data.batch(cfg.val_batch_size)
