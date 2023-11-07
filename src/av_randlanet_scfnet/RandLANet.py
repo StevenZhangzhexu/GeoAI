@@ -24,7 +24,6 @@ class Network:
         # Path of the result folder
         if self.config.saving:
             self.saving_path = 'av_randlanet_scfnet/results/%s/' % filename
-            self.saving_path = self.config.saving_path
             makedirs(self.saving_path, exist_ok=True)
 
         with tf.variable_scope('inputs'):
