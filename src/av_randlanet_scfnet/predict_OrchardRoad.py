@@ -15,7 +15,7 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 
 
 class OrchardRoad:
-    def __init__(self, filepath=''):
+    def __init__(self, filepath):
         self.name = 'OrchardRoad'
         self.path = 'av_randlanet_scfnet/data/orchard_road'
         self.label_to_names = {
@@ -42,7 +42,6 @@ class OrchardRoad:
 
         # Initial training-validation-testing files
         self.test_inputs = [filepath.split("/")[-1]]
-        # self.test_files = [os.path.join(self.test_pc_folder, files) for files in self.test_inputs]
         self.test_files = [filepath]
 
         # Initiate containers
@@ -169,8 +168,8 @@ class OrchardRoad:
                            np.array([cloud_idx], dtype=np.int32))
 
         gen_func = spatially_regular_gen
-        gen_types = (tf.float32, tf.float32, tf.int32, tf.int32, tf.int32)
-        gen_shapes = ([None, 3], [None, n_features], [None], [None], [None])
+        gen_types = (tf.float32, tf.float32, tf.int32, tf.int32)
+        gen_shapes = ([None, 3], [None, n_features], [None], [None])
         return gen_func, gen_types, gen_shapes
 
     def get_tf_mapping(self):
