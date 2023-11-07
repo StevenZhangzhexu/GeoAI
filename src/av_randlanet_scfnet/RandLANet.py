@@ -34,11 +34,9 @@ class Network:
             self.inputs['sub_idx'] = flat_inputs[2 * num_layers:3 * num_layers]
             self.inputs['interp_idx'] = flat_inputs[3 * num_layers:4 * num_layers]
             self.inputs['features'] = flat_inputs[4 * num_layers]
-            self.inputs['labels'] = flat_inputs[4 * num_layers + 1]
-            self.inputs['input_inds'] = flat_inputs[4 * num_layers + 2]
-            self.inputs['cloud_inds'] = flat_inputs[4 * num_layers + 3]
+            self.inputs['input_inds'] = flat_inputs[4 * num_layers + 1]
+            self.inputs['cloud_inds'] = flat_inputs[4 * num_layers + 2]
 
-            self.labels = self.inputs['labels']
             self.is_training = tf.placeholder(tf.bool, shape=())
             self.training_step = 1
             self.training_epoch = 0
@@ -50,46 +48,6 @@ class Network:
 
         with tf.variable_scope('layers'):
             self.logits = self.inference(self.inputs, self.is_training)
-
-        #####################################################################
-        # Ignore the invalid point (unlabeled) when calculating the loss #
-        #####################################################################
-        with tf.variable_scope('loss'):
-            self.logits = tf.reshape(self.logits, [-1, config.num_classes])
-            self.labels = tf.reshape(self.labels, [-1])
-
-            # Boolean mask of points that should be ignored
-            ignored_bool = tf.zeros_like(self.labels, dtype=tf.bool)
-            for ign_label in self.config.ignored_label_inds:
-                ignored_bool = tf.logical_or(ignored_bool, tf.equal(self.labels, ign_label))
-
-            # Collect logits and labels that are not ignored
-            valid_idx = tf.squeeze(tf.where(tf.logical_not(ignored_bool)))
-            valid_logits = tf.gather(self.logits, valid_idx, axis=0)
-            valid_labels_init = tf.gather(self.labels, valid_idx, axis=0)
-
-            # Reduce label values in the range of logit shape
-            reducing_list = tf.range(self.config.num_classes, dtype=tf.int32)
-            inserted_value = tf.zeros((1,), dtype=tf.int32)
-            for ign_label in self.config.ignored_label_inds:
-                reducing_list = tf.concat([reducing_list[:ign_label], inserted_value, reducing_list[ign_label:]], 0)
-            valid_labels = tf.gather(reducing_list, valid_labels_init)
-
-            self.loss = self.get_loss(valid_logits, valid_labels, self.class_weights)
-
-        with tf.variable_scope('optimizer'):
-            self.learning_rate = tf.Variable(config.learning_rate, trainable=False, name='learning_rate')
-            self.train_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
-            self.extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-
-        with tf.variable_scope('results'):
-            self.correct_prediction = tf.nn.in_top_k(valid_logits, valid_labels, 1)
-            self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
-            self.prob_logits = tf.nn.softmax(self.logits)
-
-            tf.summary.scalar('learning_rate', self.learning_rate)
-            tf.summary.scalar('loss', self.loss)
-            tf.summary.scalar('accuracy', self.accuracy)
 
         my_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
         self.saver = tf.train.Saver(my_vars, max_to_keep=100)
@@ -143,129 +101,6 @@ class Network:
                                             is_training, activation_fn=None)
         f_out = tf.squeeze(f_layer_fc3, [2])
         return f_out
-
-    def train(self, dataset):
-        log_out('****EPOCH {}****'.format(self.training_epoch), self.Log_file)
-        self.sess.run(dataset.train_init_op)
-        while self.training_epoch < self.config.max_epoch:
-            t_start = time.time()
-            try:
-                ops = [self.train_op,
-                       self.extra_update_ops,
-                       self.merged,
-                       self.loss,
-                       self.logits,
-                       self.labels,
-                       self.accuracy]
-                _, _, summary, l_out, probs, labels, acc = self.sess.run(ops, {self.is_training: True})
-                self.train_writer.add_summary(summary, self.training_step)
-                t_end = time.time()
-                if self.training_step % 50 == 0:
-                    message = 'Step {:08d} L_out={:5.3f} Acc={:4.2f} ''---{:8.2f} ms/batch'
-                    log_out(message.format(self.training_step, l_out, acc, 1000 * (t_end - t_start)), self.Log_file)
-                self.training_step += 1
-
-            except tf.errors.OutOfRangeError:
-
-                m_iou = self.evaluate(dataset)
-                if m_iou > np.max(self.mIou_list):
-                    # Save the best model
-                    snapshot_directory = join(self.saving_path, 'snapshots')
-                    makedirs(snapshot_directory) if not exists(snapshot_directory) else None
-                    self.saver.save(self.sess, snapshot_directory + '/snap', global_step=self.training_step)
-                self.mIou_list.append(m_iou)
-                log_out('Best m_IoU is: {:5.3f}'.format(max(self.mIou_list)), self.Log_file)
-
-                self.training_epoch += 1
-                self.sess.run(dataset.train_init_op)
-                # Update learning rate
-                op = self.learning_rate.assign(tf.multiply(self.learning_rate,
-                                                           self.config.lr_decays[self.training_epoch]))
-                self.sess.run(op)
-                log_out('****EPOCH {}****'.format(self.training_epoch), self.Log_file)
-
-            except tf.errors.InvalidArgumentError as e:
-
-                print('Caught a NaN error :')
-                print(e.error_code)
-                print(e.message)
-                print(e.op)
-                print(e.op.name)
-                print([t.name for t in e.op.inputs])
-                print([t.name for t in e.op.outputs])
-
-                a = 1 / 0
-
-        print('finished')
-        self.sess.close()
-
-    def evaluate(self, dataset):
-
-        # Initialise iterator with validation data
-        self.sess.run(dataset.val_init_op)
-
-        gt_classes = [0 for _ in range(self.config.num_classes)]
-        positive_classes = [0 for _ in range(self.config.num_classes)]
-        true_positive_classes = [0 for _ in range(self.config.num_classes)]
-        val_total_correct = 0
-        val_total_seen = 0
-
-        for step_id in range(self.config.val_steps):
-            if step_id % 50 == 0:
-                print(str(step_id) + ' / ' + str(self.config.val_steps))
-            try:
-                ops = (self.prob_logits, self.labels, self.accuracy)
-                stacked_prob, labels, acc = self.sess.run(ops, {self.is_training: False})
-                pred = np.argmax(stacked_prob, 1)
-                if not self.config.ignored_label_inds:
-                    pred_valid = pred
-                    labels_valid = labels
-                else:
-                    invalid_idx = np.where(labels == self.config.ignored_label_inds)[0]
-                    labels_valid = np.delete(labels, invalid_idx)
-                    labels_valid = labels_valid - 1
-                    pred_valid = np.delete(pred, invalid_idx)
-
-                correct = np.sum(pred_valid == labels_valid)
-                val_total_correct += correct
-                val_total_seen += len(labels_valid)
-
-                conf_matrix = confusion_matrix(labels_valid, pred_valid, np.arange(0, self.config.num_classes, 1))
-                gt_classes += np.sum(conf_matrix, axis=1)
-                positive_classes += np.sum(conf_matrix, axis=0)
-                true_positive_classes += np.diagonal(conf_matrix)
-
-            except tf.errors.OutOfRangeError:
-                break
-
-        iou_list = []
-        for n in range(0, self.config.num_classes, 1):
-            iou = true_positive_classes[n] / float(gt_classes[n] + positive_classes[n] - true_positive_classes[n])
-            iou_list.append(iou)
-        mean_iou = sum(iou_list) / float(self.config.num_classes)
-
-        log_out('eval accuracy: {}'.format(val_total_correct / float(val_total_seen)), self.Log_file)
-        log_out('mean IOU:{}'.format(mean_iou), self.Log_file)
-
-        mean_iou = 100 * mean_iou
-        log_out('Mean IoU = {:.1f}%'.format(mean_iou), self.Log_file)
-        s = '{:5.2f} | '.format(mean_iou)
-        for IoU in iou_list:
-            s += '{:5.2f} '.format(100 * IoU)
-        log_out('-' * len(s), self.Log_file)
-        log_out(s, self.Log_file)
-        log_out('-' * len(s) + '\n', self.Log_file)
-        return mean_iou
-
-    def get_loss(self, logits, labels, pre_cal_weights):
-        # calculate the weighted cross entropy according to the inverse frequency
-        class_weights = tf.convert_to_tensor(pre_cal_weights, dtype=tf.float32)
-        one_hot_labels = tf.one_hot(labels, depth=self.config.num_classes)
-        weights = tf.reduce_sum(class_weights * one_hot_labels, axis=1)
-        unweighted_losses = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=one_hot_labels)
-        weighted_losses = unweighted_losses * weights
-        output_loss = tf.reduce_mean(weighted_losses)
-        return output_loss
 
     def dilated_res_block(self, feature, xyz, neigh_idx, d_out, name, is_training):
         f_pc = helper_tf_util.conv2d(feature, d_out // 2, [1, 1], name + 'mlp1', [1, 1], 'VALID', True, is_training)
