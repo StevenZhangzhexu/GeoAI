@@ -45,11 +45,7 @@ class OrchardRoad:
         self.test_files = [filepath]
 
         # Initiate containers
-        self.val_proj = []
-        self.val_labels = []
         self.test_proj = []
-        self.test_labels = []
-
         self.possibility = {}
         self.min_possibility = {}
         self.class_weight = {}
@@ -174,7 +170,7 @@ class OrchardRoad:
 
     def get_tf_mapping(self):
         # Collect flat inputs
-        def tf_map(batch_xyz, batch_features, batch_labels, batch_pc_idx, batch_cloud_idx):
+        def tf_map(batch_xyz, batch_features, batch_pc_idx, batch_cloud_idx):
             batch_features = tf.map_fn(self.tf_augment_input, [batch_xyz, batch_features], dtype=tf.float32)
             input_points = []
             input_neighbors = []
@@ -193,7 +189,7 @@ class OrchardRoad:
                 batch_xyz = sub_points
 
             input_list = input_points + input_neighbors + input_pools + input_up_samples
-            input_list += [batch_features, batch_labels, batch_pc_idx, batch_cloud_idx]
+            input_list += [batch_features, batch_pc_idx, batch_cloud_idx]
 
             return input_list
 
