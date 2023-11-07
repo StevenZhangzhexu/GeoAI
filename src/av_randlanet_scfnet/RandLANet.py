@@ -1,10 +1,10 @@
 from os.path import exists, join
 from os import makedirs
 from sklearn.metrics import confusion_matrix
-from utils.helper_tool import DataProcessing as DP
+from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
 import tensorflow as tf
 import numpy as np
-from utils import helper_tf_util
+from av_randlanet_scfnet.utils import helper_tf_util
 import time
 
 import warnings

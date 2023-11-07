@@ -1,5 +1,5 @@
 from os.path import join
-from RandLANet import Network
+from av_randlanet_scfnet.RandLANet import Network
 # from SCFNet import Network
 from tester_OrchardRoad import ModelTester
 from utils.helper_tool import ConfigOrchardRoad as cfg
