@@ -1,8 +1,8 @@
 from os import makedirs
 from os.path import exists, join
 
-from utils.helper_ply import read_ply, write_ply
-from utils.helper_las import read_las, write_laz
+from av_randlanet_scfnet.utils.helper_ply import read_ply, write_ply
+from av_randlanet_scfnet.utils.helper_las import read_las, write_laz
 import tensorflow as tf
 import numpy as np
 import time

@@ -1,8 +1,8 @@
 from os.path import join
 from av_randlanet_scfnet.RandLANet import Network
 # from SCFNet import Network
-from tester_OrchardRoad import ModelTester
-from utils.helper_tool import ConfigOrchardRoad as cfg
+from av_randlanet_scfnet.tester_OrchardRoad import ModelTester
+from av_randlanet_scfnet.utils.helper_tool import ConfigOrchardRoad as cfg
 import tensorflow as tf
 import numpy as np
 import pickle, os
