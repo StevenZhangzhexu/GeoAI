@@ -16,7 +16,7 @@ def log_string(out_str, log_out):
 
 
 class ModelTester:
-    def __init__(self, model, dataset, config, restore_snap=None):
+    def __init__(self, model, dataset, config, filename, restore_snap=None):
         # Tensorflow Saver definition
         my_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
         self.saver = tf.train.Saver(my_vars, max_to_keep=100)
@@ -38,10 +38,10 @@ class ModelTester:
         # Add a softmax operation for predictions
         self.prob_logits = tf.nn.softmax(model.logits)
         self.test_probs = [np.zeros((l.data.shape[0], model.config.num_classes), dtype=np.float16)
-                           for l in dataset.input_trees['test']]
+                           for l in dataset.input_trees['predict']]
 
         self.config = config
-        self.log_out = open('log_test_' + dataset.name + '.txt', 'a')
+        self.log_out = open(join('av_randlanet_scfnet/results/%s/' % filename, 'log_test.txt'), 'a')
 
     def test(self, model, dataset, filename, num_votes=100, eval=False):
 
@@ -83,12 +83,12 @@ class ModelTester:
                     self.test_probs[c_i][inds] = test_smooth * self.test_probs[c_i][inds] + (1 - test_smooth) * probs
                 step_id += 1
                 log_string('Epoch {:3d}, step {:3d}. min possibility = {:.1f}'.format(epoch_id, step_id, np.min(
-                    dataset.min_possibility['test'])), self.log_out)
+                    dataset.min_possibility['predict'])), self.log_out)
 
             except tf.errors.OutOfRangeError:
 
                 # Save predicted cloud
-                new_min = np.min(dataset.min_possibility['test'])
+                new_min = np.min(dataset.min_possibility['predict'])
                 log_string('Epoch {:3d}, end. Min possibility = {:.1f}'.format(epoch_id, new_min), self.log_out)
 
                 if last_min + 1 < new_min:

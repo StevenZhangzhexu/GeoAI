@@ -274,6 +274,6 @@ def predict(filepath):
     dataset.init_predict_pipeline()
     model = Network(dataset, cfg, file_name)
 
-    tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
+    tester = ModelTester(model, dataset, cfg, file_name, restore_snap=chosen_snap)
     print("Starting prediction...")
     tester.test(model, dataset, file_name)
