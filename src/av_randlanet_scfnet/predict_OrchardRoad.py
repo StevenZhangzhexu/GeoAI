@@ -271,4 +271,4 @@ def predict(filepath):
 
     tester = ModelTester(model, dataset, cfg, file_name, restore_snap=chosen_snap)
     print("Starting prediction...")
-    tester.test(model, dataset, file_name)
+    tester.infer(model, dataset, file_name)

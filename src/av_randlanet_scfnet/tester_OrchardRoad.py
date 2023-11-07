@@ -42,7 +42,7 @@ class ModelTester:
         self.config = config
         self.log_out = open(join('av_randlanet_scfnet/results/%s/' % filename, 'log_test.txt'), 'a')
 
-    def test(self, model, dataset, filename, num_votes=100, eval=False):
+    def infer(self, model, dataset, filename, num_votes=100):
 
         # Smoothing parameter for votes
         test_smooth = 0.98
@@ -107,25 +107,12 @@ class ModelTester:
                         points = self.load_test_points(file_path)
 
                         # Reproject probs
-                        probs = np.zeros(shape=[np.shape(points)[0], 8], dtype=np.float16)
                         proj_index = dataset.test_proj[i_test]
 
                         probs = self.test_probs[i_test][proj_index, :]
 
-                        # Insert false columns for ignored labels
-                        probs2 = probs
-                        for l_ind, label_value in enumerate(dataset.label_values):
-                            if label_value in dataset.ignored_labels:
-                                probs2 = np.insert(probs2, l_ind, 0, axis=1)
-
                         # Get the predicted labels
-                        preds = dataset.label_values[np.argmax(probs2, axis=1)].astype(np.uint8)
-
-                        # Save plys
-                        # cloud_name = file_path.split('/')[-1]
-                        # ply_name = join(test_path, 'predictions', cloud_name)
-                        # write_ply(ply_name, [points, preds], ['x', 'y', 'z', 'preds'])
-                        # log_string(ply_name + ' has saved', self.log_out)
+                        preds = dataset.label_values[np.argmax(probs, axis=1)].astype(np.uint8)
 
                         # Save laz
                         test_las = read_las(file_path)
