@@ -22,7 +22,6 @@ def prepare_custom_data(pc_names, path):
             'name': "OrchardRoad_RandLAnet",
             'points': points,
             'feat': pcd.intensity,
-            'labels': pcd.label,
             'pred': pcd.pred,
         }
         pc_data.append(data)
@@ -53,11 +52,9 @@ def main():
     lut = ml3d.vis.LabelLUT()
     for val in sorted(orchard_labels.keys()):
         lut.add_label(orchard_labels[val], val)
-    v.set_lut("labels", lut)
     v.set_lut("pred", lut)
 
-    logs = np.sort([os.path.join('test', f) for f in os.listdir('test') if f.startswith('Log')])
-    chosen_folder = logs[-1]
+    chosen_folder = 'av_randlanet_scfnet/results/Orchard_0913_labelled_E.laz/predictions/'
     pred_path = os.path.join(chosen_folder, 'predictions')
     pc_names = ["Orchard_0913_labelled_E.laz"]
     pcs_with_pred = prepare_custom_data(pc_names, pred_path)
