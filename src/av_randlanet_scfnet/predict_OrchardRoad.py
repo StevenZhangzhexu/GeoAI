@@ -262,9 +262,9 @@ def predict(filepath):
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    mode = 'predict'
 
     dataset = OrchardRoad(filepath)
+    file_name = filepath.split('/')[-1]
 
     snap_path = 'av_randlanet_scfnet/checkpoints'
     snap_steps = [int(f[:-5].split('-')[-1]) for f in os.listdir(snap_path) if f[-5:] == '.meta']
@@ -272,8 +272,8 @@ def predict(filepath):
     chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
 
     dataset.init_predict_pipeline()
-    model = Network(dataset, cfg, mode)
+    model = Network(dataset, cfg, file_name)
 
     tester = ModelTester(model, dataset, cfg, restore_snap=chosen_snap)
     print("Starting prediction...")
-    tester.test(model, dataset, filepath.split('/')[-1])
+    tester.test(model, dataset, file_name)

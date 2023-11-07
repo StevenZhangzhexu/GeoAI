@@ -18,16 +18,13 @@ def log_out(out_str, f_out):
 
 
 class Network:
-    def __init__(self, dataset, config):
+    def __init__(self, dataset, config, filename):
         flat_inputs = dataset.flat_inputs
         self.config = config
         # Path of the result folder
         if self.config.saving:
-            if self.config.saving_path is None:
-                self.saving_path = time.strftime('results/Log_%Y-%m-%d_%H-%M-%S', time.gmtime())
-            else:
-                self.saving_path = self.config.saving_path
-            # makedirs(self.saving_path) if not exists(self.saving_path) else None
+            self.saving_path = 'av_randlanet_scfnet/results/%s/' % filename
+            self.saving_path = self.config.saving_path
             makedirs(self.saving_path, exist_ok=True)
 
         with tf.variable_scope('inputs'):
