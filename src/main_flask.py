@@ -43,6 +43,7 @@ def result():
             to_directory = "/home/pc1/shared"
             copy_tree(from_directory, to_directory)
             # shutil.copy(from_file, to_directory)
+            print("All finished!")
 
             return render_template("success.html", name=f.filename)
         except Exception as err:
