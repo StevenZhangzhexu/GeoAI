@@ -2,6 +2,9 @@ import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
 from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects
+from distutils.dir_util import copy_tree
+
+
 app = Flask(__name__, static_folder='static/')
 
 
@@ -30,6 +33,11 @@ def result():
 
             # post-process
             separate_predicted_objects.separate_segmented_point_clouds(f.filename)
+
+            # copy the results to shared folder
+            from_directory = "av_randlanet_scfnet/results/%s/" % f.filename
+            to_directory = "/home/pc1/shared"
+            copy_tree(from_directory, to_directory)
 
             return render_template("success.html", name=f.filename)
         except Exception as err:

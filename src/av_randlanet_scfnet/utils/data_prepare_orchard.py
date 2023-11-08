@@ -24,8 +24,14 @@ def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data
 
     pc = read_las(pc_path)
     xyz = np.vstack((pc.x, pc.y, pc.z)).T.astype(np.float32)
-    color = np.vstack((pc.red, pc.green, pc.blue)).T.astype(np.uint8)
-    intensity = pc.intensity.astype(np.uint8).reshape(-1, 1)
+    try:
+        color = np.vstack((pc.red, pc.green, pc.blue)).T.astype(np.uint8)
+    except:
+        color = np.zeros_like(xyz).astype(np.uint8)
+    try:
+        intensity = pc.intensity.astype(np.uint8).reshape(-1, 1)
+    except:
+        intensity = np.zeros_like(pc.x).astype(np.uint8).reshape(-1, 1)
 
     #  Subsample to save space
     sub_xyz, sub_colors = DP.grid_sub_sampling(xyz, features=color, labels=None, grid_size=grid_size)
