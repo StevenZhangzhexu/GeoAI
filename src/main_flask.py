@@ -34,7 +34,7 @@ def result():
 
             # post-process
             # separate_predicted_objects.separate_segmented_point_clouds(f.filename)
-            separate_predicted_objects.separate_segmented_point_clouds_original(f.filename)
+            separate_predicted_objects.separate_segmented_point_clouds(f.filename)
 
             # copy the results to shared folder
             from_directory = "av_randlanet_scfnet/results/"
