@@ -37,7 +37,7 @@ def result():
 
             # copy the results to shared folder
             from_directory = "av_randlanet_scfnet/results/"
-            from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
+            from_file = "av_randlanet_scfnet/results/%s/predictions/"
             to_directory = "/home/pc1/shared"
             copy_tree(from_directory, to_directory)
             copy_tree(from_file, to_directory)
