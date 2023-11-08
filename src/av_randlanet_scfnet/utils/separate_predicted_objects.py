@@ -37,6 +37,7 @@ def save_separate_laz_point_cloud(output_file_path, points):
 
 def separate_segmented_point_clouds(filename):
     pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
+    segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
     os.makedirs(output_dir, exist_ok=True)
 
@@ -50,6 +51,10 @@ def separate_segmented_point_clouds(filename):
         segment_points = inFile.points[inFile.pred == segment_id]
         coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
         print(label_to_names[segment_id], len(coordinates))
+
+        # Save the segmented point cloud as a .laz file
+        output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+        save_separate_laz_point_cloud(output_file, coordinates)
 
         # Apply DBSCAN clustering to the segment's coordinates
         clustering = DBSCAN(eps=0.5, min_samples=100).fit(coordinates)

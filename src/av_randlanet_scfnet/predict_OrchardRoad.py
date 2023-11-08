@@ -254,6 +254,8 @@ class OrchardRoad:
 
 
 def predict(filepath):
+    print("Starting prediction...")
+
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -270,5 +272,5 @@ def predict(filepath):
     model = Network(dataset, cfg, file_name)
 
     tester = ModelTester(model, dataset, cfg, file_name, restore_snap=chosen_snap)
-    print("Starting prediction...")
     tester.infer(model, dataset, file_name)
+    print("Prediction finished!")

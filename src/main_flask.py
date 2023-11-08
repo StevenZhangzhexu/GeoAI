@@ -37,6 +37,7 @@ def result():
             separate_predicted_objects.separate_segmented_point_clouds(f.filename)
 
             # copy the results to shared folder
+            print("Copying the predicted results to ftp...")
             from_directory = "av_randlanet_scfnet/results/"
             # from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
             to_directory = "/home/pc1/shared"
