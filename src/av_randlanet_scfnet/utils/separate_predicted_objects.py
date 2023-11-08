@@ -97,6 +97,7 @@ def separate_and_cluster_point_clouds(filename):
     pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
     segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
+    os.makedirs(segment_dir, exist_ok=True)
     os.makedirs(output_dir, exist_ok=True)
 
     inFile = laspy.read(os.path.join(pred_dir, filename[:-4] + '.laz'))
