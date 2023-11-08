@@ -54,8 +54,10 @@ def main():
         lut.add_label(orchard_labels[val], val)
     v.set_lut("pred", lut)
 
-    chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
-    pc_names = ["Orchard_0913_labelled_E.laz"]
+    # chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
+    chosen_folder = 'results/test.laz/predictions/'
+    # pc_names = ["Orchard_0913_labelled_E.laz"]
+    pc_names = ["test.laz"]
     pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
 
     print("Visualizing predictions...")
