@@ -38,10 +38,10 @@ def result():
 
             # copy the results to shared folder
             from_directory = "av_randlanet_scfnet/results/"
-            from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
+            # from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
             to_directory = "/home/pc1/shared"
             copy_tree(from_directory, to_directory)
-            shutil.copy(from_file, to_directory)
+            # shutil.copy(from_file, to_directory)
 
             return render_template("success.html", name=f.filename)
         except Exception as err:
