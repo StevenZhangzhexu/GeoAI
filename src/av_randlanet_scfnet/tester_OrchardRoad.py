@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import join
 
-from av_randlanet_scfnet.utils.helper_las import read_las, write_laz
+from av_randlanet_scfnet.utils.helper_las import read_las, write_laz, save_coordinates
 import tensorflow as tf
 import numpy as np
 import laspy
@@ -94,9 +94,6 @@ class ModelTester:
                     print('Prediction done in {:.1f} s\n'.format(time.time() - t0))
                     print('Saving clouds')
 
-                    # Update last_min
-                    last_min = new_min
-
                     # Project predictions
                     print('\nReproject Vote #{:d}'.format(int(np.floor(new_min))))
                     t1 = time.time()
@@ -119,6 +116,7 @@ class ModelTester:
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
                         write_laz(pred_filepath, test_las, points, preds)
+                        save_coordinates(saving_path, filename[:-4], points)
                         log_string(pred_filepath + ' has been saved.', self.log_out)
 
                         i_test += 1

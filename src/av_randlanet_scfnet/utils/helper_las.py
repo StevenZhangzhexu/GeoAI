@@ -1,5 +1,7 @@
+import os
 import laspy
 import numpy as np
+from pyproj import Proj, itransform
 
 
 def read_las(pcd_filepath):
@@ -40,3 +42,20 @@ def write_laz(save_filepath, original_las, points, preds):
 
     las_writer.write(save_filepath)
     print("Prediction in .laz saved in path:", save_filepath)
+
+
+def save_coordinates(save_dir, filename, svy21_points):
+    # Define the SVY21 projection
+    svy21_proj = Proj(init='epsg:3414')  # SVY21 Projection
+
+    # Define the WGS 84 projection for geolocation
+    wgs84_proj = Proj(init='epsg:4326')  # WGS 84 (latitude, longitude) projection
+
+    # Convert SVY21 coordinates to WGS 84 geolocation
+    print("Converting points to WGS84 format...")
+    wgs84_points = itransform(svy21_proj, wgs84_proj, svy21_points)
+    wgs84_points = np.array(list(wgs84_points))
+
+    # save files
+    np.savetxt(os.path.join(save_dir, filename + "_SVY21.txt"), svy21_points, delimiter=',', newline='\n')
+    np.savetxt(os.path.join(save_dir, filename + "_WGS84.txt"), wgs84_points, delimiter=',', newline='\n')
