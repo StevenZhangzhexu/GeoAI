@@ -38,6 +38,27 @@ def save_separate_laz_point_cloud(output_file_path, points):
     print(len(points), "point cloud saved to:", output_file_path)
 
 
+def clustering_and_save_objects(coordinates, output_dir, segment_id):
+    # Apply DBSCAN clustering to the segment's coordinates
+    clustering = DBSCAN(eps=0.5, min_samples=100).fit(coordinates)
+
+    # Get unique cluster labels from clustering results
+    unique_labels = np.unique(clustering.labels_)
+
+    # Iterate over clusters and save them as separate files
+    for cluster_label in unique_labels:
+        if cluster_label == -1:
+            continue  # Skip noise points
+
+        # Select points belonging to the current cluster
+        cluster_points = coordinates[clustering.labels_ == cluster_label]
+
+        # Save the cluster as a separate .laz file
+        output_file = os.path.join(output_dir,
+                                   f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
+        save_separate_laz_point_cloud(output_file, cluster_points)
+
+
 def separate_segmented_point_clouds(filename):
     pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
     segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
@@ -59,23 +80,10 @@ def separate_segmented_point_clouds(filename):
         output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
         save_separate_laz_point_cloud(output_file, coordinates)
 
-        # Apply DBSCAN clustering to the segment's coordinates
-        clustering = DBSCAN(eps=0.5, min_samples=100).fit(coordinates)
-
-        # Get unique cluster labels from clustering results
-        unique_labels = np.unique(clustering.labels_)
-
-        # Iterate over clusters and save them as separate files
-        for cluster_label in unique_labels:
-            if cluster_label == -1:
-                continue  # Skip noise points
-
-            # Select points belonging to the current cluster
-            cluster_points = coordinates[clustering.labels_ == cluster_label]
-
-            # Save the cluster as a separate .laz file
-            output_file = os.path.join(output_dir, f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
-            save_separate_laz_point_cloud(output_file, cluster_points)
+        # threading
+        thread = Thread(target=clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
+        thread.start()
+        thread.join()
 
 
 def cluster_and_save_segment(segment_id, segment_path, output_dir):
