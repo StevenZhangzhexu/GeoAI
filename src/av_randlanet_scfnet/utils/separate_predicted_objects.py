@@ -58,7 +58,8 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
         output_file = os.path.join(output_dir,
                                    f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
         save_separate_laz_point_cloud(output_file, cluster_points)
-        sleep(5)
+
+    sleep(5)
 
 
 def separate_segmented_point_clouds(filename):
@@ -88,23 +89,6 @@ def separate_segmented_point_clouds(filename):
         thread.join()
 
 
-def cluster_and_save_segment(segment_id, segment_path, output_dir):
-    segment = laspy.read(segment_path)
-    segment_points = np.vstack((segment.x, segment.y, segment.z)).T
-
-    # Apply DBSCAN clustering to the segment's coordinates
-    clustering = DBSCAN(eps=0.5, min_samples=100).fit(segment_points)
-    unique_labels = np.unique(clustering.labels_)
-
-    for cluster_label in unique_labels:
-        if cluster_label == -1:
-            continue  # Skip noise points
-
-        cluster_points = segment_points[clustering.labels_ == cluster_label]
-        output_file = os.path.join(output_dir, f"segment_{segment_id}_object_{cluster_label}.laz")
-        save_separate_laz_point_cloud(output_file, cluster_points)
-
-
 def separate_and_cluster_point_clouds(filename):
     pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
     segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
@@ -129,4 +113,4 @@ def separate_and_cluster_point_clouds(filename):
             save_separate_laz_point_cloud(segment_file, coordinates)
 
             # Cluster each segment in parallel
-            pool.apply_async(cluster_and_save_segment, args=(segment_id, segment_file, output_dir))
+            pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
