@@ -3,6 +3,7 @@ import laspy
 import numpy as np
 from sklearn.cluster import DBSCAN
 from multiprocessing import Pool
+from queue import Queue
 from threading import Thread
 from time import sleep
 
@@ -45,6 +46,7 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
 
     # Get unique cluster labels from clustering results
     unique_labels = np.unique(clustering.labels_)
+    print(f"Number of objects in {label_to_names[segment_id]}:", unique_labels)
 
     # Iterate over clusters and save them as separate files
     for cluster_label in unique_labels:
@@ -59,7 +61,7 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
                                    f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
         save_separate_laz_point_cloud(output_file, cluster_points)
 
-    sleep(5)
+    print("Clustering and saving objects from", label_to_names[segment_id], "completed.")
 
 
 def separate_segmented_point_clouds(filename):
@@ -74,19 +76,35 @@ def separate_segmented_point_clouds(filename):
     segment_ids = set(np.unique(inFile.pred))
     print(segment_ids)
 
+    # Create a queue to manage the tasks
+    task_queue = Queue()
+
+    # for segment_id in segment_ids:
+    #     segment_points = inFile.points[inFile.pred == segment_id]
+    #     coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+    #     print(label_to_names[segment_id], len(coordinates))
+    #
+    #     # Save the segmented point cloud as a .laz file
+    #     output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+    #     save_separate_laz_point_cloud(output_file, coordinates)
+    #
+    #     # threading
+    #     thread = Thread(target=clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
+    #     thread.start()
+    #     thread.join()
+
+    # Add each segment to the task queue
     for segment_id in segment_ids:
         segment_points = inFile.points[inFile.pred == segment_id]
         coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
-        print(label_to_names[segment_id], len(coordinates))
+        task_queue.put((coordinates, output_dir, segment_id))
 
-        # Save the segmented point cloud as a .laz file
-        output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
-        save_separate_laz_point_cloud(output_file, coordinates)
+    # Create a process pool to cluster the segments in parallel
+    pool = Pool(processes=3)
 
-        # threading
-        thread = Thread(target=clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
-        thread.start()
-        thread.join()
+    # Start the workers
+    for i in range(pool._processes):
+        pool.apply_async(clustering_and_save_objects, task_queue.get())
 
 
 def separate_and_cluster_point_clouds(filename):
