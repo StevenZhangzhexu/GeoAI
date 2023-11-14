@@ -2,6 +2,8 @@ import os
 import laspy
 import numpy as np
 from pyproj import Proj, itransform
+import shutil
+from distutils.dir_util import copy_tree
 
 
 def read_las(pcd_filepath):
@@ -59,3 +61,12 @@ def save_coordinates(save_dir, filename, svy21_points):
     # save files
     np.savetxt(os.path.join(save_dir, filename + "_SVY21.txt"), svy21_points, delimiter=',', newline='\n')
     np.savetxt(os.path.join(save_dir, filename + "_WGS84.txt"), wgs84_points, delimiter=',', newline='\n')
+
+
+def copy_predictions():
+    print("Copying the predicted results to ftp...")
+    from_directory = "av_randlanet_scfnet/results/"
+    # from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
+    to_directory = "/home/pc1/shared"
+    copy_tree(from_directory, to_directory)
+    # shutil.copy(from_file, to_directory)

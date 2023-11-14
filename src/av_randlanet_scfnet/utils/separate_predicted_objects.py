@@ -6,6 +6,7 @@ from multiprocessing import Pool
 from queue import Queue
 from threading import Thread
 from time import sleep
+import helper_las
 
 
 label_to_names = {
@@ -105,6 +106,16 @@ def separate_segmented_point_clouds(filename):
     # Start the workers
     for i in range(pool._processes):
         pool.apply_async(clustering_and_save_objects, task_queue.get())
+
+    # Wait for all tasks to finish
+    pool.close()
+    pool.join()
+
+    # copy the results to shared folder
+    helper_las.copy_predictions()
+
+    # Print a message indicating that all tasks have finished
+    print("All tasks have finished for ", filename)
 
 
 def separate_and_cluster_point_clouds(filename):

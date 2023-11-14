@@ -1,9 +1,7 @@
 import os
-import shutil
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects
-from distutils.dir_util import copy_tree
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
 
 
 app = Flask(__name__, static_folder='static/')
@@ -33,16 +31,13 @@ def result():
             predict_OrchardRoad.predict(filepath=file_path)
 
             # post-process
+
             separate_predicted_objects.separate_segmented_point_clouds(f.filename)
             # separate_predicted_objects.separate_and_cluster_point_clouds(f.filename)
 
             # copy the results to shared folder
-            print("Copying the predicted results to ftp...")
-            from_directory = "av_randlanet_scfnet/results/"
-            # from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
-            to_directory = "/home/pc1/shared"
-            copy_tree(from_directory, to_directory)
-            # shutil.copy(from_file, to_directory)
+            helper_las.copy_predictions()
+
             print("All finished!")
 
             return render_template("success.html", name=f.filename)
