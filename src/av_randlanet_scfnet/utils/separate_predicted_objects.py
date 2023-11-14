@@ -103,7 +103,7 @@ def separate_and_cluster_point_clouds(filename):
     print(segment_ids)
 
     # Save segmented point clouds and perform clustering in parallel
-    with Pool(processes=13) as pool:
+    with Pool(processes=4) as pool:
         for segment_id in segment_ids:
             segment_points = inFile.points[inFile.pred == segment_id]
             coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
