@@ -39,6 +39,7 @@ def save_separate_laz_point_cloud(output_file_path, points):
 
 
 def clustering_and_save_objects(coordinates, output_dir, segment_id):
+    print("CLustering and separating objects from", label_to_names[segment_id], "...")
     # Apply DBSCAN clustering to the segment's coordinates
     clustering = DBSCAN(eps=0.5, min_samples=100).fit(coordinates)
 
@@ -57,6 +58,7 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
         output_file = os.path.join(output_dir,
                                    f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
         save_separate_laz_point_cloud(output_file, cluster_points)
+        sleep(5)
 
 
 def separate_segmented_point_clouds(filename):
