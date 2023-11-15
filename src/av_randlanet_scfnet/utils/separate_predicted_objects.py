@@ -85,10 +85,6 @@ def separate_segmented_point_clouds(filename):
     #     coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
     #     print(label_to_names[segment_id], len(coordinates))
     #
-    #     # Save the segmented point cloud as a .laz file
-    #     output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
-    #     save_separate_laz_point_cloud(output_file, coordinates)
-    #
     #     # threading
     #     thread = Thread(target=clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
     #     thread.start()
@@ -100,11 +96,16 @@ def separate_segmented_point_clouds(filename):
         coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
         task_queue.put((coordinates, output_dir, segment_id))
 
+        # Save the segmented point cloud as a .laz file
+        output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+        save_separate_laz_point_cloud(output_file, coordinates)
+
     # Create a process pool to cluster the segments in parallel
     pool = Pool(processes=3)
 
     # Start the workers
     for i in range(pool._processes):
+        # pool.apply_async(clustering_and_save_objects, task_queue.get(), args=(coordinates, output_dir, segment_id))
         pool.apply_async(clustering_and_save_objects, task_queue.get())
 
     # Wait for all tasks to finish
