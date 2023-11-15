@@ -47,7 +47,7 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
 
     # Get unique cluster labels from clustering results
     unique_labels = np.unique(clustering.labels_)
-    print(f"Number of objects in {label_to_names[segment_id]}:", unique_labels)
+    print(f"Number of objects in {label_to_names[segment_id]}:", len(unique_labels))
 
     # Iterate over clusters and save them as separate files
     for cluster_label in unique_labels:
