@@ -46,7 +46,7 @@ def write_laz(save_filepath, original_las, points, preds):
     print("Prediction in .laz saved in path:", save_filepath)
 
 
-def save_coordinates(save_dir, filename, svy21_points):
+def save_coordinates(save_dir, filename, svy21_points, file_format="txt"):
     # Define the SVY21 projection
     svy21_proj = Proj(init='epsg:3414')  # SVY21 Projection
 
@@ -59,8 +59,11 @@ def save_coordinates(save_dir, filename, svy21_points):
     wgs84_points = np.array(list(wgs84_points))
 
     # save files
-    np.savetxt(os.path.join(save_dir, filename + "_SVY21.txt"), svy21_points, delimiter=',', newline='\n')
-    np.savetxt(os.path.join(save_dir, filename + "_WGS84.txt"), wgs84_points, delimiter=',', newline='\n')
+    if file_format == "laz":
+        write_laz(os.path.join(save_dir, filename + "_WGS84.laz"), wgs84_points)
+    elif file_format == "txt":
+        np.savetxt(os.path.join(save_dir, filename + "_SVY21.txt"), svy21_points, delimiter=',', newline='\n')
+        np.savetxt(os.path.join(save_dir, filename + "_WGS84.txt"), wgs84_points, delimiter=',', newline='\n')
 
 
 def copy_predictions():

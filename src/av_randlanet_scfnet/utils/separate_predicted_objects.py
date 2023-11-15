@@ -118,12 +118,12 @@ def separate_segmented_point_clouds(filename):
     print("All tasks have finished for ", filename)
 
 
-def separate_and_cluster_point_clouds(filename):
+def separate_and_segment_point_clouds(filename):
     pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
     segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
-    output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
+    # output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
     os.makedirs(segment_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
+    # os.makedirs(output_dir, exist_ok=True)
 
     inFile = laspy.read(os.path.join(pred_dir, filename[:-4] + '.laz'))
     print(len(inFile.points))
@@ -132,14 +132,46 @@ def separate_and_cluster_point_clouds(filename):
     print(segment_ids)
 
     # Save segmented point clouds and perform clustering in parallel
+    # with Pool(processes=4) as pool:
+    for segment_id in segment_ids:
+        segment_points = inFile.points[inFile.pred == segment_id]
+        coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+
+        # Save the segmented point cloud
+        segment_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+        save_separate_laz_point_cloud(segment_file, coordinates)
+
+        # Cluster each segment in parallel
+        # pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
+
+
+def separate_and_cluster_point_cloud_objects(filename):
+    # pred_dir = 'av_randlanet_scfnet/results/%s/predictions/' % filename
+    segment_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
+    output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
+    # os.makedirs(segment_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # inFile = laspy.read(os.path.join(pred_dir, filename[:-4] + '.laz'))
+    # print(len(inFile.points))
+
+    # segment_ids = set(np.unique(inFile.pred))
+    # print(segment_ids)
+
+    segments = os.listdir(segment_dir)
+
+    # Save segmented point clouds and perform clustering in parallel
     with Pool(processes=4) as pool:
-        for segment_id in segment_ids:
-            segment_points = inFile.points[inFile.pred == segment_id]
+        for segment_file in segments:
+            segment_points = laspy.read(os.path.join(segment_dir, segment_file))
+            print(len(segment_points.points))
+
+            # segment_points = inFile.points[inFile.pred == segment_id]
             coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
 
             # Save the segmented point cloud
-            segment_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
-            save_separate_laz_point_cloud(segment_file, coordinates)
+            # segment_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+            # save_separate_laz_point_cloud(segment_file, coordinates)
 
             # Cluster each segment in parallel
-            pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
+            pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, int(segment_file.split("_")[1])))
