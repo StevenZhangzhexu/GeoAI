@@ -32,8 +32,8 @@ def result():
 
             # post-process
 
-            separate_predicted_objects.separate_segmented_point_clouds(f.filename)
-            # separate_predicted_objects.separate_and_cluster_point_clouds(f.filename)
+            # separate_predicted_objects.separate_segmented_point_clouds(f.filename)
+            separate_predicted_objects.separate_and_cluster_point_clouds(f.filename)
 
             # copy the results to shared folder
             helper_las.copy_predictions()
