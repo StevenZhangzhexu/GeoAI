@@ -39,6 +39,8 @@ def result():
             # copy the results to shared folder
             helper_las.copy_predictions()
 
+            # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
+            separate_predicted_objects.run_sam_instance_segmentation(f.filename)
             separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
 
             # copy the results to shared folder

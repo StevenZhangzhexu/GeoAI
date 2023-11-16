@@ -3,3 +3,7 @@ uvicorn
 python-multipart
 flask
 waitress
+laspy[lazrs,laszip]
+open3d
+pyproj
+segment-lidar
