@@ -7,7 +7,8 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 import helper_las
-from segment_lidar import samlidar
+# from segment_lidar import samlidar
+import samlidar
 
 
 label_to_names = {
