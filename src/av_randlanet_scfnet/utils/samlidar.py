@@ -3,7 +3,7 @@
 # This file is distributed under the BSD-3 licence. See LICENSE file for complete text of the license.
 
 import os
-import CSF
+from CSF import CSF
 import time
 import torch
 import numpy as np
