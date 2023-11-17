@@ -42,8 +42,8 @@ def result():
             helper_las.copy_predictions()
 
             # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
-            sam_instance_segmentation.run_sam_instance_segmentation(f.filename)
-            # subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python', 'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
+            # sam_instance_segmentation.run_sam_instance_segmentation(f.filename)
+            subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python', 'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
             separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
 
             # copy the results to shared folder
