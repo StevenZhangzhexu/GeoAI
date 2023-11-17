@@ -1,8 +1,14 @@
 import os
 import sys
 
-sys.path.append("/home/pc1/miniconda3/envs/samlidar/bin/python")
-os.environ["PYTHONPATH"] = "/home/pc1/miniconda3/envs/samlidar/bin/python"
+samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
+sys.path.append(samlidar_pythonpath)
+os.environ["PYTHONPATH"] = samlidar_pythonpath
+
+try:
+    sys.path.index(samlidar_pythonpath)    # Or os.getcwd() for this directory
+except ValueError:
+    sys.path.append(samlidar_pythonpath)    # Or os.getcwd() for this directory
 
 
 def run_sam_instance_segmentation(filename):
