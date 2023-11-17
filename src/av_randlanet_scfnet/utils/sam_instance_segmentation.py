@@ -1,11 +1,13 @@
 import os
 import sys
 
-from segment_lidar import samlidar
+sys.path.append("/home/pc1/miniconda3/envs/samlidar/bin/python")
+os.environ["PYTHONPATH"] = "/home/pc1/miniconda3/envs/samlidar/bin/python"
 
 
 def run_sam_instance_segmentation(filename):
-    print("Running SAM-LiDAR Instance Segmentation...")
+    from segment_lidar import samlidar
+    print("Running SAM-LiDAR Instance Segmentation for", filename)
     seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
     save_dir = seg_dir.replace("separate_segments", "separate_instances")
