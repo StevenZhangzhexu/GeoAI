@@ -1,4 +1,5 @@
 import os
+import sys
 import laspy
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -7,8 +8,6 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 import helper_las
-# from segment_lidar import samlidar
-import samlidar
 
 
 label_to_names = {
@@ -136,19 +135,6 @@ def separate_and_segment_point_clouds(filename):
 
         # Cluster each segment in parallel
         # pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
-
-
-def run_sam_instance_segmentation(filename):
-    seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
-    model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
-    save_dir = seg_dir.replace("separate_segments", "separate_instances")
-    os.makedirs(save_dir, exist_ok=True)
-
-    files = os.listdir(seg_dir)
-    for each in files:
-        points = model.read(os.path.join(seg_dir, each))
-        labels, *_ = model.segment(points=points)
-        model.write(points=points, segment_ids=labels, save_path=os.path.join(save_dir, each))
 
 
 def separate_instance_objects(input_file, output_dir, label_id):

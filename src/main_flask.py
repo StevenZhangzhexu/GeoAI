@@ -2,6 +2,7 @@ import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
 from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
+import subprocess
 
 
 app = Flask(__name__, static_folder='static/')
@@ -40,7 +41,8 @@ def result():
             helper_las.copy_predictions()
 
             # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
-            separate_predicted_objects.run_sam_instance_segmentation(f.filename)
+            # separate_predicted_objects.run_sam_instance_segmentation(f.filename)
+            subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python', 'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
             separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
 
             # copy the results to shared folder
