@@ -36,17 +36,17 @@ def save_separate_laz_point_cloud(output_file_path, las_reader, segment_id):
     header.scales = np.array([0.1, 0.1, 0.1])
     las_writer = laspy.LasData(header)
 
-    # Define a list of attributes to transfer
-    attributes_to_transfer = list(las_reader.point_format.dimension_names)
-    # print(attributes_to_transfer)
-    # Transfer attributes from split_laz to las_writer
-    for attr_name in attributes_to_transfer:
-        # setattr(las_writer, attr_name, getattr(las_reader, attr_name))
-        setattr(las_writer, attr_name, getattr(las_reader, attr_name)[las_reader.pred == segment_id])
+    las_writer.x = points[:, 0]
+    las_writer.y = points[:, 1]
+    las_writer.z = points[:, 2]
 
-    # las_writer.x = points[:, 0]
-    # las_writer.y = points[:, 1]
-    # las_writer.z = points[:, 2]
+    try:
+        las_writer.red = las_reader.red[las_reader.pred == segment_id]
+        las_writer.green = las_reader.green[las_reader.pred == segment_id]
+        las_writer.blue = las_reader.blue[las_reader.pred == segment_id]
+        las_writer.intensity = las_reader.intensity[las_reader.pred == segment_id]
+    except Exception as e:
+        print(e)
 
     las_writer.write(output_file_path)
     print(len(points), "point cloud saved to:", output_file_path)
@@ -61,17 +61,9 @@ def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_i
     header.scales = np.array([0.1, 0.1, 0.1])
     las_writer = laspy.LasData(header)
 
-    # Define a list of attributes to transfer
-    attributes_to_transfer = list(las_reader.point_format.dimension_names)
-    # print(attributes_to_transfer)
-    # Transfer attributes from split_laz to las_writer
-    for attr_name in attributes_to_transfer:
-        # setattr(las_writer, attr_name, getattr(las_reader, attr_name))
-        setattr(las_writer, attr_name, getattr(las_reader, attr_name)[las_reader.segment_id == object_id])
-
-    # las_writer.x = points[:, 0]
-    # las_writer.y = points[:, 1]
-    # las_writer.z = points[:, 2]
+    las_writer.x = points[:, 0]
+    las_writer.y = points[:, 1]
+    las_writer.z = points[:, 2]
 
     las_writer.write(output_file_path)
     print(len(points), "point cloud saved to:", output_file_path)
