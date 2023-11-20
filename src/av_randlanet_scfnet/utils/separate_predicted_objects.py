@@ -182,7 +182,7 @@ def separate_instance_objects(input_file, output_dir, label_id):
         print(len(coordinates))
 
         # Save the point cloud as a .laz file
-        output_file = os.path.join(output_dir, f"segment_{label_id}_{label_to_names[label_id]}_{obj_id}.laz")
+        output_file = os.path.join(output_dir, f"segment_{label_id}_{label_to_names[label_id]}_object_{obj_id}.laz")
         save_separate_laz_point_cloud_objects(output_file, inFile, obj_id)
 
 
