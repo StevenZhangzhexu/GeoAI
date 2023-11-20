@@ -21,13 +21,10 @@ def run_sam_instance_segmentation(filename):
 
     files = os.listdir(seg_dir)
     for each in files:
-        try:
-            points = model.read(os.path.join(seg_dir, each))
-            labels, *_ = model.segment(points=points)
-            model.write(points=points, segment_ids=labels, save_path=os.path.join(save_dir, each))
-            print("Saved instance segmentation for", each)
-        except Exception as err:
-            print("Error in", each, " : ", err)
+        points = model.read(os.path.join(seg_dir, each))
+        labels, *_ = model.segment(points=points)
+        model.write(points=points, segment_ids=labels, save_path=os.path.join(save_dir, each))
+        print("Saved instance segmentation for", each)
 
 
 if __name__ == '__main__':

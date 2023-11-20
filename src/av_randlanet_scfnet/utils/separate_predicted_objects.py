@@ -27,15 +27,51 @@ label_to_names = {
                 }
 
 
-def save_separate_laz_point_cloud(output_file_path, points):
+def save_separate_laz_point_cloud(output_file_path, las_reader, segment_id):
+    segment_points = las_reader.points[las_reader.pred == segment_id]
+    points = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+
     header = laspy.LasHeader(point_format=3, version="1.2")
     header.offsets = np.min(points, axis=0)
     header.scales = np.array([0.1, 0.1, 0.1])
-
     las_writer = laspy.LasData(header)
-    las_writer.x = points[:, 0]
-    las_writer.y = points[:, 1]
-    las_writer.z = points[:, 2]
+
+    # Define a list of attributes to transfer
+    attributes_to_transfer = list(las_reader.point_format.dimension_names)
+    # print(attributes_to_transfer)
+    # Transfer attributes from split_laz to las_writer
+    for attr_name in attributes_to_transfer:
+        # setattr(las_writer, attr_name, getattr(las_reader, attr_name))
+        setattr(las_writer, attr_name, getattr(las_reader, attr_name)[las_reader.pred == segment_id])
+
+    # las_writer.x = points[:, 0]
+    # las_writer.y = points[:, 1]
+    # las_writer.z = points[:, 2]
+
+    las_writer.write(output_file_path)
+    print(len(points), "point cloud saved to:", output_file_path)
+
+
+def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_id):
+    segment_points = las_reader.points[las_reader.segment_id == object_id]
+    points = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+
+    header = laspy.LasHeader(point_format=3, version="1.2")
+    header.offsets = np.min(points, axis=0)
+    header.scales = np.array([0.1, 0.1, 0.1])
+    las_writer = laspy.LasData(header)
+
+    # Define a list of attributes to transfer
+    attributes_to_transfer = list(las_reader.point_format.dimension_names)
+    # print(attributes_to_transfer)
+    # Transfer attributes from split_laz to las_writer
+    for attr_name in attributes_to_transfer:
+        # setattr(las_writer, attr_name, getattr(las_reader, attr_name))
+        setattr(las_writer, attr_name, getattr(las_reader, attr_name)[las_reader.segment_id == object_id])
+
+    # las_writer.x = points[:, 0]
+    # las_writer.y = points[:, 1]
+    # las_writer.z = points[:, 2]
 
     las_writer.write(output_file_path)
     print(len(points), "point cloud saved to:", output_file_path)
@@ -126,12 +162,9 @@ def separate_and_segment_point_clouds(filename):
     # Save segmented point clouds and perform clustering in parallel
     # with Pool(processes=4) as pool:
     for segment_id in segment_ids:
-        segment_points = inFile.points[inFile.pred == segment_id]
-        coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
-
         # Save the segmented point cloud
         segment_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
-        save_separate_laz_point_cloud(segment_file, coordinates)
+        save_separate_laz_point_cloud(segment_file, inFile, segment_id)
 
         # Cluster each segment in parallel
         # pool.apply_async(clustering_and_save_objects, args=(coordinates, output_dir, segment_id))
@@ -158,7 +191,7 @@ def separate_instance_objects(input_file, output_dir, label_id):
 
         # Save the point cloud as a .laz file
         output_file = os.path.join(output_dir, f"segment_{label_id}_{label_to_names[label_id]}_{obj_id}.laz")
-        save_separate_laz_point_cloud(output_file, coordinates)
+        save_separate_laz_point_cloud_objects(output_file, inFile, obj_id)
 
 
 def separate_and_cluster_point_cloud_objects(filename):
