@@ -116,7 +116,7 @@ class ModelTester:
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
                         write_laz(pred_filepath, test_las, points, preds)
-                        # save_coordinates(saving_path, filename[:-4], points)
+                        save_coordinates(pred_filepath[:-4], test_las, points, preds)
                         log_string(pred_filepath + ' has been saved.', self.log_out)
 
                         i_test += 1

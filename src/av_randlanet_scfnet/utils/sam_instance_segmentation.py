@@ -52,8 +52,9 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
         print(len(coordinates))
 
         # Save the point cloud as a .laz file
-        output_file = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
-        save_separate_laz_point_cloud_objects(output_file, inFile, obj_id)
+        output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
+        save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
+        helper_las.convert_and_save_wgs84(output_filepath, coordinates)
 
 
 def run_sam_instance_segmentation(filename):

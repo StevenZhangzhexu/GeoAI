@@ -40,13 +40,36 @@ def write_laz(save_filepath, original_las, points, preds):
     for attr_name in attributes_to_transfer:
         setattr(las_writer, attr_name, getattr(original_las, attr_name))
 
+    las_writer.x = points[:, 0]
+    las_writer.y = points[:, 1]
+    las_writer.z = points[:, 2]
     las_writer.pred = preds
 
     las_writer.write(save_filepath)
     print("Prediction in .laz saved in path:", save_filepath)
 
 
-def save_coordinates(save_dir, filename, svy21_points, file_format="txt"):
+def write_sub_laz(save_filepath, points):
+    # Add extension if not there
+    if not save_filepath.endswith('.laz'):
+        save_filepath = save_filepath[:-4] + '.laz'
+
+    # 1. Create a new header
+    header = laspy.LasHeader(point_format=3, version="1.2")
+    header.offsets = np.min(points, axis=0)
+    header.scales = np.array([0.1, 0.1, 0.1])
+
+    # 2. Create a Las
+    las_writer = laspy.LasData(header)
+    las_writer.x = points[:, 0]
+    las_writer.y = points[:, 1]
+    las_writer.z = points[:, 2]
+
+    las_writer.write(save_filepath)
+    print("Prediction in .laz saved in path:", save_filepath)
+
+
+def convert_svy21_to_wgs84(svy21_points):
     # Define the SVY21 projection
     svy21_proj = Proj(init='epsg:3414')  # SVY21 Projection
 
@@ -58,12 +81,31 @@ def save_coordinates(save_dir, filename, svy21_points, file_format="txt"):
     wgs84_points = itransform(svy21_proj, wgs84_proj, svy21_points)
     wgs84_points = np.array(list(wgs84_points))
 
+    return wgs84_points
+
+
+def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="laz"):
+    # convert coordinates
+    wgs84_points = convert_svy21_to_wgs84(svy21_points)
+
     # save files
     if file_format == "laz":
-        write_laz(os.path.join(save_dir, filename + "_WGS84.laz"), wgs84_points)
+        write_laz(save_path + "_WGS84.laz", original_laz, wgs84_points, preds)
     elif file_format == "txt":
-        np.savetxt(os.path.join(save_dir, filename + "_SVY21.txt"), svy21_points, delimiter=',', newline='\n')
-        np.savetxt(os.path.join(save_dir, filename + "_WGS84.txt"), wgs84_points, delimiter=',', newline='\n')
+        np.savetxt(save_path + "_SVY21.txt", svy21_points, delimiter=',', newline='\n')
+        np.savetxt(save_path + "_WGS84.txt", wgs84_points, delimiter=',', newline='\n')
+
+
+def convert_and_save_wgs84(save_path, svy21_points):
+    # Add extension if not there
+    if not save_path.endswith('_WGS84.laz'):
+        save_path = save_path[:-4] + '_WGS84.laz'
+
+    # convert coordinates
+    wgs84_points = convert_svy21_to_wgs84(svy21_points)
+
+    # save files
+    write_sub_laz(save_path, wgs84_points)
 
 
 def copy_predictions():
