@@ -4,6 +4,7 @@ import numpy as np
 from pyproj import Proj, itransform
 import shutil
 from distutils.dir_util import copy_tree
+import helper_json
 
 
 def read_las(pcd_filepath):
@@ -16,6 +17,12 @@ def read_las(pcd_filepath):
     print("File loaded from:", pcd_filepath)
 
     return las_reader
+
+
+def get_laz_points(filepath):
+    inFile = laspy.read(filepath)
+    coordinates = np.vstack((inFile['x'], inFile['y'], inFile['z'])).T
+    return coordinates
 
 
 def write_laz(save_filepath, original_las, points, preds):
@@ -96,6 +103,11 @@ def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="
         np.savetxt(save_path + "_WGS84.txt", wgs84_points, delimiter=',', newline='\n')
 
 
+def get_main_base_center_coord(svy21_points):
+    wgs84_points = convert_svy21_to_wgs84(svy21_points)
+    return helper_json.get_center_base_coord(wgs84_points)
+
+
 def convert_and_save_wgs84(save_path, svy21_points):
     # Add extension if not there
     if not save_path.endswith('_WGS84.laz'):
@@ -107,6 +119,8 @@ def convert_and_save_wgs84(save_path, svy21_points):
     # save files
     write_sub_laz(save_path, wgs84_points)
 
+    return helper_json.get_center_base_coord(wgs84_points)
+
 
 def copy_predictions():
     print("Copying the predicted results to ftp...")
@@ -115,3 +129,22 @@ def copy_predictions():
     to_directory = "/home/pc1/shared"
     copy_tree(from_directory, to_directory)
     # shutil.copy(from_file, to_directory)
+
+
+def save_segment_object_bc_coords(filename, all_objects):
+    svy21_points = get_laz_points(filename)
+
+    final_json = {
+        'json': all_objects,
+        'origin': get_main_base_center_coord(svy21_points)
+    }
+
+    # Save all objects as a single JSON file
+
+    # Add extension if not there
+    save_filepath = filename[:-4] + '.json'
+    if not filename.endswith('.laz'):
+        save_filepath = filename + '.json'
+
+    # save_objects_json(output_file, all_objects)
+    helper_json.save_objects_json(save_filepath, final_json)

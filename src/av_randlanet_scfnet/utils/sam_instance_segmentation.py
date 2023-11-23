@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import laspy
 import helper_las
+import helper_json
 
 
 samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
@@ -35,6 +36,7 @@ def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_i
 def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
     # Save segmented point clouds
     seg_name = segment_file[:-4].split("/")[-1]
+    seg_id = segment_file.split("_")[1]
     inFile = laspy.read(segment_file)
     print(len(inFile.points))
 
@@ -42,8 +44,12 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
     inst_ids = set(np.unique(inFile.segment_id))
     print(inst_ids)
 
+    object_coords = []
+
     # Iterate over each segment ID and create a separate file for each segment
+    i = 0
     for obj_id in inst_ids:
+        i += 1
         # Copy the points from the input file that belong to the current segment
         segment_points = inFile.points[inFile.segment_id == obj_id]
 
@@ -54,7 +60,13 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
         # Save the point cloud as a .laz file
         output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
         save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
-        helper_las.convert_and_save_wgs84(output_filepath, coordinates)
+        bc_coord = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
+        object_coords.append({
+            "id": seg_name + "_" + str(i),
+            "coords": bc_coord
+        })
+
+    return {"label": seg_id, "objects": object_coords}
 
 
 def run_sam_instance_segmentation(filename):
@@ -68,6 +80,9 @@ def run_sam_instance_segmentation(filename):
     output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
     os.makedirs(output_dir, exist_ok=True)
 
+    # define .json dicts
+    segment_objects = []
+
     files = os.listdir(seg_dir)
     for each in files:
         seg_path = os.path.join(save_dir, each)
@@ -76,7 +91,9 @@ def run_sam_instance_segmentation(filename):
             labels, *_ = model.segment(points=points)
             model.write(points=points, segment_ids=labels, save_path=seg_path)
             print("Saved instance segmentation for", each)
-            separate_and_cluster_point_cloud_objects(seg_path, output_dir)
+            object_coords = separate_and_cluster_point_cloud_objects(seg_path, output_dir)
+            segment_objects.append(object_coords)
+            helper_las.save_segment_object_bc_coords(filename, segment_objects)
         except Exception as err:
             print(err)
 
