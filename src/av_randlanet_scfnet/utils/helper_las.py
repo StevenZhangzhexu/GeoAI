@@ -132,7 +132,7 @@ def copy_predictions():
 
 
 def save_segment_object_bc_coords(filename, all_objects):
-    svy21_points = get_laz_points(filename)
+    svy21_points = get_laz_points(os.path.join('av_randlanet_scfnet/results/%s/predictions/' % filename, filename))
 
     final_json = {
         'json': all_objects,
@@ -142,9 +142,10 @@ def save_segment_object_bc_coords(filename, all_objects):
     # Save all objects as a single JSON file
 
     # Add extension if not there
-    save_filepath = filename[:-4] + '.json'
+    save_filename = filename[:-4] + '.json'
     if not filename.endswith('.laz'):
-        save_filepath = filename + '.json'
+        save_filename = filename + '.json'
 
     # save_objects_json(output_file, all_objects)
-    helper_json.save_objects_json(save_filepath, final_json)
+    out_pth = os.path.join('av_randlanet_scfnet/results/%s/predictions/' % filename, save_filename)
+    helper_json.save_objects_json(out_pth, final_json)
