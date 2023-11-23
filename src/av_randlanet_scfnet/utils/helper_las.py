@@ -149,3 +149,4 @@ def save_segment_object_bc_coords(filename, all_objects):
     # save_objects_json(output_file, all_objects)
     out_pth = os.path.join('av_randlanet_scfnet/results/%s/predictions/' % filename, save_filename)
     helper_json.save_objects_json(out_pth, final_json)
+    print("json list file saved with the object coordinates.")
