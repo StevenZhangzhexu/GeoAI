@@ -2,7 +2,6 @@
 import logging
 import open3d.ml.torch as ml3d  # just switch to open3d.ml.tf for tf usage
 import numpy as np
-import os
 from os.path import join
 import laspy
 
@@ -32,7 +31,7 @@ def prepare_custom_data(pc_names, path):
 # ------------------------------
 
 
-def main():
+def viz_pred(filename):
     orchard_labels = {
                         0: 'Bollard',
                         1: 'Building',
@@ -55,9 +54,9 @@ def main():
     v.set_lut("pred", lut)
 
     # chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
-    chosen_folder = 'results/test.laz/predictions/'
+    chosen_folder = f'results/{filename}/predictions/'
     # pc_names = ["Orchard_0913_labelled_E.laz"]
-    pc_names = ["test.laz"]
+    pc_names = [filename]
     pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
 
     print("Visualizing predictions...")
@@ -71,4 +70,4 @@ if __name__ == "__main__":
         format="%(levelname)s - %(asctime)s - %(module)s - %(message)s",
     )
 
-    main()
+    viz_pred("test.laz")
