@@ -52,7 +52,9 @@ def result():
             helper_las.copy_predictions()
 
             # visualize predictions
-            vis_pred_OrchardRoad.viz_pred(f.filename)
+            # vis_pred_OrchardRoad.viz_pred(f.filename)
+            subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python',
+                            'av_randlanet_scfnet/vis_pred_OrchardRoad.py', f.filename])
 
             print("All finished!")
 

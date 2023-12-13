@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import logging
 import open3d.ml.torch as ml3d  # just switch to open3d.ml.tf for tf usage
 import numpy as np
@@ -70,4 +71,4 @@ if __name__ == "__main__":
         format="%(levelname)s - %(asctime)s - %(module)s - %(message)s",
     )
 
-    viz_pred("test.laz")
+    viz_pred(sys.argv[1])
