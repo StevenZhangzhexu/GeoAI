@@ -59,10 +59,14 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
         # Save the point cloud as a .laz file
         output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
         save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
-        bc_coord = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
+        calc_coords = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
         object_coords.append({
             "id": seg_name + "_" + str(i),
-            "coords": bc_coord
+            # "coords": bc_coord
+            "start": calc_coords[0],
+            "end": calc_coords[1],
+            "center": calc_coords[2],
+            "orientation": calc_coords[3]
         })
 
     return {"label": seg_name.split("_")[1], "objects": object_coords}

@@ -54,7 +54,7 @@ def viz_pred(filename):
     v.set_lut("pred", lut)
 
     # chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
-    chosen_folder = f'results/{filename}/predictions/'
+    chosen_folder = f'av_randlanet_scfnet/results/{filename}/predictions/'
     # pc_names = ["Orchard_0913_labelled_E.laz"]
     pc_names = [filename]
     pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)

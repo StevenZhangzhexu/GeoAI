@@ -1,8 +1,9 @@
 # randlanet installation
 # manually install the below commented stuff first
 # nvidia cuda driver and toolkit
-# conda create -n randlanet python=3.6
-# conda activate randlanet
+
+conda create -n randlanet -y python=3.6
+conda activate randlanet
 
 pip install -r requirements.txt
 sh compile_op.sh
