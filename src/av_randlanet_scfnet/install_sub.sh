@@ -7,3 +7,4 @@ conda activate samlidar
 
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install open3d
+pip install segment-lidar
