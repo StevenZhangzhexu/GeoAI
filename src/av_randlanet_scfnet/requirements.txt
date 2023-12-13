@@ -9,6 +9,4 @@ PyYAML==5.4
 tensorflow-gpu==1.*
 tensorboard==1.15.*
 laspy[lazrs,laszip]
-open3d
 pyproj
-segment-lidar
