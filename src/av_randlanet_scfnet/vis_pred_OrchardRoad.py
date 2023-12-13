@@ -1,10 +1,21 @@
 #!/usr/bin/env python
+import os
 import sys
 import logging
 import open3d.ml.torch as ml3d  # just switch to open3d.ml.tf for tf usage
 import numpy as np
 from os.path import join
 import laspy
+
+
+samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
+sys.path.append(samlidar_pythonpath)
+os.environ["PYTHONPATH"] = samlidar_pythonpath
+
+try:
+    sys.path.index(samlidar_pythonpath)    # Or os.getcwd() for this directory
+except ValueError:
+    sys.path.append(samlidar_pythonpath)    # Or os.getcwd() for this directory
 
 log = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
 from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
-from av_randlanet_scfnet.utils import sam_instance_segmentation
-from av_randlanet_scfnet import vis_pred_OrchardRoad
+# from av_randlanet_scfnet.utils import sam_instance_segmentation
+# from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
 
 
