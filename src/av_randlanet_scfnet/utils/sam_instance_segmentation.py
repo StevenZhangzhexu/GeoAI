@@ -3,7 +3,6 @@ import sys
 import numpy as np
 import laspy
 import helper_las
-import helper_json
 
 
 samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
