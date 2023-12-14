@@ -35,7 +35,7 @@ def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_i
 
 def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
     # Save segmented point clouds
-    seg_name = segment_file[:-4].split("/")[-1]
+    seg_name = segment_file.split("/")[-1]
     inFile = laspy.read(segment_file)
     print(len(inFile.points))
 
