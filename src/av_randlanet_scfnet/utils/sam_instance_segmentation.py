@@ -80,26 +80,29 @@ def run_sam_instance_segmentation(filename):
     print("Running SAM-LiDAR Instance Segmentation for", filename)
     seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
-    save_dir = seg_dir.replace("separate_segments", "separate_instances")
-    os.makedirs(save_dir, exist_ok=True)
-    output_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
-    os.makedirs(output_dir, exist_ok=True)
+    sam_dir = 'av_randlanet_scfnet/results/%s/separate_instances/' % filename
+    os.makedirs(sam_dir, exist_ok=True)
+    obj_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
+    os.makedirs(obj_dir, exist_ok=True)
 
     # define .json dicts
     segment_objects = []
 
     files = os.listdir(seg_dir)
+    print(files)
+
     for each in files:
-        seg_path = os.path.join(save_dir, each)
-        try:
-            points = model.read(os.path.join(seg_dir, each))
-            labels, *_ = model.segment(points=points)
-            model.write(points=points, segment_ids=labels, save_path=seg_path)
-            print("Saved instance segmentation for", each)
-            object_coords = separate_and_cluster_point_cloud_objects(seg_path, output_dir)
-            segment_objects.append(object_coords)
-        except Exception as err:
-            print(err)
+        seg_path = os.path.join(sam_dir, each)
+        if os.path.exists(seg_path):
+            try:
+                points = model.read(os.path.join(seg_dir, each))
+                labels, *_ = model.segment(points=points)
+                model.write(points=points, segment_ids=labels, save_path=seg_path)
+                print("Saved instance segmentation for", each)
+                object_coords = separate_and_cluster_point_cloud_objects(seg_path, obj_dir)
+                segment_objects.append(object_coords)
+            except Exception as err:
+                print(err)
 
     helper_las.save_segment_object_bc_coords(filename, segment_objects)
     print("Saved segmented objects list of positional coordinates for", filename)
