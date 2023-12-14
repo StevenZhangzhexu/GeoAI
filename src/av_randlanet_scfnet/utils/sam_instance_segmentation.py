@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import laspy
 import helper_las
+import traceback
 
 
 samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
@@ -70,6 +71,7 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
             })
         except Exception as err:
             print(err)
+            traceback.print_exc()
 
     return {"label": seg_name.split("_")[1], "objects": object_coords}
 
@@ -88,15 +90,15 @@ def run_sam_instance_segmentation(filename):
     # define .json dicts
     segment_objects = []
 
-    files = os.listdir(seg_dir)
-    print(files)
+    seg_files = os.listdir(seg_dir)
+    print(seg_files)
 
-    for each in files:
+    for each in seg_files:
         seg_path = os.path.join(seg_dir, each)
         sam_path = os.path.join(sam_dir, each)
         if os.path.exists(seg_path):
             try:
-                points = model.read(os.path.join(seg_dir, each))
+                points = model.read(seg_path)
                 labels, *_ = model.segment(points=points)
                 model.write(points=points, segment_ids=labels, save_path=sam_path)
                 print("Saved SAM instance segmentation for", each)
@@ -104,6 +106,7 @@ def run_sam_instance_segmentation(filename):
                 segment_objects.append(object_coords)
             except Exception as err:
                 print(err)
+                traceback.print_exc()
 
     helper_las.save_segment_object_bc_coords(filename, segment_objects)
     print("Saved segmented objects list of positional coordinates for", filename)
