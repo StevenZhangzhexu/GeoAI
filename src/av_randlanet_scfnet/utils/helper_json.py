@@ -91,6 +91,22 @@ def get_axes_orientation_by_unit_vector(point1, point2):
 def get_center_base_coord(coordinates):
     # Find the point with the lowest z-coordinate (assuming z represents height)
     base_point = coordinates[np.argmin(coordinates[:, 2])]
+    center_coordinate = np.mean(coordinates, axis=0)
+
+    base_center_coord = {
+            'x': center_coordinate[0],
+            'y': center_coordinate[1],
+            # 'z': center_coordinate[2],
+            'z': base_point[2],
+    }
+    print(base_center_coord)
+
+    return base_center_coord
+
+
+def get_start_end_center_base_coords(coordinates):
+    # Find the point with the lowest z-coordinate (assuming z represents height)
+    base_point = coordinates[np.argmin(coordinates[:, 2])]
     start_coordinate = np.min(coordinates, axis=0)
     end_coordinate = np.max(coordinates, axis=0)
     center_coordinate = np.mean(coordinates, axis=0)

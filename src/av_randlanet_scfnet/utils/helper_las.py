@@ -119,7 +119,7 @@ def convert_and_save_wgs84(save_path, svy21_points):
     # save files
     write_sub_laz(save_path, wgs84_points)
 
-    return helper_json.get_center_base_coord(wgs84_points)
+    return helper_json.get_start_end_center_base_coords(wgs84_points)
 
 
 def copy_predictions():

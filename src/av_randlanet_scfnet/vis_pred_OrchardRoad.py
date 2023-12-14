@@ -40,10 +40,10 @@ def prepare_custom_data(pc_names, path):
     return pc_data
 
 
-# ------------------------------
+# --------------semantic segmentation----------------
 
 
-def viz_pred(filename):
+def viz_pred_semseg(filename):
     orchard_labels = {
                         0: 'Bollard',
                         1: 'Building',
@@ -75,6 +75,43 @@ def viz_pred(filename):
     v.visualize(pcs_with_pred)
 
 
+# --------------------Object Detection--------------------
+
+
+def viz_pred_objdet(filename):
+    orchard_labels = {
+                        0: 'Bollard',
+                        1: 'Building',
+                        2: 'Bus Stop',
+                        3: 'Control Box',
+                        4: 'Ground',
+                        5: 'Lamp Post',
+                        6: 'Pole',
+                        7: 'Railing',
+                        8: 'Road',
+                        9: 'Shrub',
+                        10: 'Sign',
+                        11: 'Solar Panel',
+                        12: 'Tree'
+                    }
+    v = ml3d.vis.Visualizer()
+    lut = ml3d.vis.LabelLUT()
+    bbox = ml3d.vis.BoundingBox3D()
+    for val in sorted(orchard_labels.keys()):
+        lut.add_label(orchard_labels[val], val)
+    v.set_lut("pred", lut)
+
+    # chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
+    chosen_folder = f'av_randlanet_scfnet/results/{filename}/predictions/'
+    # pc_names = ["Orchard_0913_labelled_E.laz"]
+    pc_names = [filename]
+    pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
+
+    print("Visualizing predictions...")
+    v.visualize(pcs_with_pred)
+
+
+
 if __name__ == "__main__":
 
     logging.basicConfig(
@@ -82,4 +119,4 @@ if __name__ == "__main__":
         format="%(levelname)s - %(asctime)s - %(module)s - %(message)s",
     )
 
-    viz_pred(sys.argv[1])
+    viz_pred_semseg(sys.argv[1])
