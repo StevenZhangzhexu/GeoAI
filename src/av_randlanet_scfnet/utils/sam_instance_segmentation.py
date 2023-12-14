@@ -48,25 +48,28 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
     i = 0
     for obj_id in inst_ids:
         i += 1
-        # Copy the points from the input file that belong to the current segment
-        segment_points = inFile.points[inFile.segment_id == obj_id]
+        try:
+            # Copy the points from the input file that belong to the current segment
+            segment_points = inFile.points[inFile.segment_id == obj_id]
 
-        # Extract the coordinates from the segment_points array
-        coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
-        print(len(coordinates))
+            # Extract the coordinates from the segment_points array
+            coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+            print(len(coordinates))
 
-        # Save the point cloud as a .laz file
-        output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
-        save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
-        calc_coords = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
-        object_coords.append({
-            "id": seg_name + "_" + str(i),
-            # "coords": bc_coord
-            "start": calc_coords[0],
-            "end": calc_coords[1],
-            "center": calc_coords[2],
-            "orientation": calc_coords[3]
-        })
+            # Save the point cloud as a .laz file
+            output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
+            save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
+            calc_coords = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
+            object_coords.append({
+                "id": seg_name + "_" + str(i),
+                # "coords": bc_coord
+                "start": calc_coords[0],
+                "end": calc_coords[1],
+                "center": calc_coords[2],
+                "orientation": calc_coords[3]
+            })
+        except Exception as err:
+            print(err)
 
     return {"label": seg_name.split("_")[1], "objects": object_coords}
 
