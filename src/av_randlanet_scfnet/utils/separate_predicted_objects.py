@@ -89,7 +89,7 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
         # Save the cluster as a separate .laz file
         output_file = os.path.join(output_dir,
                                    f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
-        save_separate_laz_point_cloud(output_file, cluster_points)
+        save_separate_laz_point_cloud(output_file, cluster_points, segment_id)
 
     print("Clustering and saving objects from", label_to_names[segment_id], "completed.")
 
