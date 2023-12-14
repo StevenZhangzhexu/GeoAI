@@ -98,11 +98,13 @@ def run_sam_instance_segmentation(filename):
             print("Saved instance segmentation for", each)
             object_coords = separate_and_cluster_point_cloud_objects(seg_path, output_dir)
             segment_objects.append(object_coords)
-            helper_las.save_segment_object_bc_coords(filename, segment_objects)
         except Exception as err:
             print(err)
 
-    helper_las.copy_predictions()
+    helper_las.save_segment_object_bc_coords(filename, segment_objects)
+    print("Saved segmented objects list of positional coordinates for", filename)
+
+    # helper_las.copy_predictions()
 
 
 if __name__ == '__main__':

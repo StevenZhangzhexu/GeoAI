@@ -21,16 +21,16 @@ class OrchardRoad:
         self.label_to_names = {
                         0: 'Bollard',
                         1: 'Building',
-                        2: 'Bus Stop',
-                        3: 'Control Box',
+                        2: 'BusStop',
+                        3: 'ControlBox',
                         4: 'Ground',
-                        5: 'Lamp Post',
+                        5: 'LampPost',
                         6: 'Pole',
                         7: 'Railing',
                         8: 'Road',
                         9: 'Shrub',
                         10: 'Sign',
-                        11: 'Solar Panel',
+                        11: 'SolarPanel',
                         12: 'Tree'
                     }
         self.num_classes = len(self.label_to_names)

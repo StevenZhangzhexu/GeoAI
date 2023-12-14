@@ -19,6 +19,22 @@ except ValueError:
 
 log = logging.getLogger(__name__)
 
+orchard_labels = {
+    0: 'Bollard',
+    1: 'Building',
+    2: 'BusStop',
+    3: 'ControlBox',
+    4: 'Ground',
+    5: 'LampPost',
+    6: 'Pole',
+    7: 'Railing',
+    8: 'Road',
+    9: 'Shrub',
+    10: 'Sign',
+    11: 'SolarPanel',
+    12: 'Tree'
+}
+
 
 def prepare_custom_data(pc_names, path):
     print("Loading orchard evaluation data...")
@@ -44,21 +60,6 @@ def prepare_custom_data(pc_names, path):
 
 
 def viz_pred_semseg(filename):
-    orchard_labels = {
-                        0: 'Bollard',
-                        1: 'Building',
-                        2: 'Bus Stop',
-                        3: 'Control Box',
-                        4: 'Ground',
-                        5: 'Lamp Post',
-                        6: 'Pole',
-                        7: 'Railing',
-                        8: 'Road',
-                        9: 'Shrub',
-                        10: 'Sign',
-                        11: 'Solar Panel',
-                        12: 'Tree'
-                    }
     v = ml3d.vis.Visualizer()
     lut = ml3d.vis.LabelLUT()
     for val in sorted(orchard_labels.keys()):
@@ -79,21 +80,6 @@ def viz_pred_semseg(filename):
 
 
 def viz_pred_objdet(filename):
-    orchard_labels = {
-                        0: 'Bollard',
-                        1: 'Building',
-                        2: 'Bus Stop',
-                        3: 'Control Box',
-                        4: 'Ground',
-                        5: 'Lamp Post',
-                        6: 'Pole',
-                        7: 'Railing',
-                        8: 'Road',
-                        9: 'Shrub',
-                        10: 'Sign',
-                        11: 'Solar Panel',
-                        12: 'Tree'
-                    }
     v = ml3d.vis.Visualizer()
     lut = ml3d.vis.LabelLUT()
     bbox = ml3d.vis.BoundingBox3D()
