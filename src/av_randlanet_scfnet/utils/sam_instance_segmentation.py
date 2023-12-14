@@ -35,15 +35,19 @@ def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_i
 
 def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
     # Save segmented point clouds
-    seg_name = segment_file.split("/")[-1]
     inFile = laspy.read(segment_file)
     print(len(inFile.points))
+
+    # lists column names in las file.
+    point_format = inFile.point_format
+    print(list(point_format.dimension_names))
 
     # Retrieve unique segment IDs
     inst_ids = set(np.unique(inFile.segment_id))
     print(inst_ids)
 
     object_coords = []
+    seg_name = segment_file[:-4].split("/")[-1]
 
     # Iterate over each segment ID and create a separate file for each segment
     i = 0
