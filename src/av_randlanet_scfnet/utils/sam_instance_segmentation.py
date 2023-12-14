@@ -92,13 +92,14 @@ def run_sam_instance_segmentation(filename):
     print(files)
 
     for each in files:
-        seg_path = os.path.join(sam_dir, each)
+        seg_path = os.path.join(seg_dir, each)
+        sam_path = os.path.join(sam_dir, each)
         if os.path.exists(seg_path):
             try:
                 points = model.read(os.path.join(seg_dir, each))
                 labels, *_ = model.segment(points=points)
-                model.write(points=points, segment_ids=labels, save_path=seg_path)
-                print("Saved instance segmentation for", each)
+                model.write(points=points, segment_ids=labels, save_path=sam_path)
+                print("Saved SAM instance segmentation for", each)
                 object_coords = separate_and_cluster_point_cloud_objects(seg_path, obj_dir)
                 segment_objects.append(object_coords)
             except Exception as err:
