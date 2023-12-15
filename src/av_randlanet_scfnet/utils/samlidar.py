@@ -229,7 +229,9 @@ class SamLidar:
 
             if csf_path is not None:
                 print(f'Saving the filtered point cloud to {csf_path}...')
-                header = laspy.LasHeader(point_format=3, version="1.3")
+                # header = laspy.LasHeader(point_format=3, version="1.3")
+                header = laspy.LasHeader(point_format=3, version="1.2")
+                header.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
                 lidar = laspy.LasData(header=header)
                 lidar.xyz = points[:, :3]
                 lidar.red = points[:, 3] * 255
@@ -237,7 +239,7 @@ class SamLidar:
                 lidar.blue = points[:, 5] * 255
                 classification = np.full(points.shape[0], 0)
                 classification[ground] = 1
-                lidar.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
+                # lidar.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
                 lidar.ground = classification
                 lidar.write(csf_path)
 
@@ -418,7 +420,9 @@ class SamLidar:
 
         print(f'Writing the segmented point cloud to {save_path}...')
 
-        header = laspy.LasHeader(point_format=3, version="1.3")
+        # header = laspy.LasHeader(point_format=3, version="1.3")
+        header = laspy.LasHeader(point_format=3, version="1.2")
+        header.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
         lidar = laspy.LasData(header=header)
 
         if ground is not None:
@@ -440,7 +444,7 @@ class SamLidar:
                     lidar.blue = cloud[:, 5] * 255
 
             segment_ids = np.append(segment_ids, np.full(len(ground), -1))
-            lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
+            # lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
             lidar.segment_id = segment_ids
         else:
             lidar.xyz = points[:, :3]
@@ -448,7 +452,7 @@ class SamLidar:
                 lidar.red = points[:, 3] * 255
                 lidar.green = points[:, 4] * 255
                 lidar.blue = points[:, 5] * 255
-            lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
+            # lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
             lidar.segment_id = segment_ids
 
         lidar.write(save_path)
