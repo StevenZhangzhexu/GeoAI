@@ -18,12 +18,5 @@ module = Extension(m_name,
                    extra_compile_args=['-std=c++11',
                                        '-D_GLIBCXX_USE_CXX11_ABI=0'])
 
-setup(ext_modules=[module], include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())
-
-
-
-
-
-
-
-
+setup(ext_modules=[module],
+      include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs())

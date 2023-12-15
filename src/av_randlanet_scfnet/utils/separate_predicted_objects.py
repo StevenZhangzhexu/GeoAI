@@ -11,25 +11,26 @@ import helper_las
 
 
 label_to_names = {
-                    0: 'Bollard',
-                    1: 'Building',
-                    2: 'BusStop',
-                    3: 'ControlBox',
-                    4: 'Ground',
-                    5: 'LampPost',
-                    6: 'Pole',
-                    7: 'Railing',
-                    8: 'Road',
-                    9: 'Shrub',
-                    10: 'Sign',
-                    11: 'SolarPanel',
-                    12: 'Tree'
-                }
+    0: 'Bollard',
+    1: 'Building',
+    2: 'BusStop',
+    3: 'ControlBox',
+    4: 'Ground',
+    5: 'LampPost',
+    6: 'Pole',
+    7: 'Railing',
+    8: 'Road',
+    9: 'Shrub',
+    10: 'Sign',
+    11: 'SolarPanel',
+    12: 'Tree'
+}
 
 
 def save_separate_laz_point_cloud(output_file_path, las_reader, segment_id):
     segment_points = las_reader.points[las_reader.pred == segment_id]
-    points = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+    points = np.vstack(
+        (segment_points['x'], segment_points['y'], segment_points['z'])).T
 
     header = laspy.LasHeader(point_format=3, version="1.2")
     header.offsets = np.min(points, axis=0)
@@ -54,7 +55,8 @@ def save_separate_laz_point_cloud(output_file_path, las_reader, segment_id):
 
 def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_id):
     segment_points = las_reader.points[las_reader.segment_id == object_id]
-    points = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+    points = np.vstack(
+        (segment_points['x'], segment_points['y'], segment_points['z'])).T
 
     header = laspy.LasHeader(point_format=3, version="1.2")
     header.offsets = np.min(points, axis=0)
@@ -70,13 +72,15 @@ def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_i
 
 
 def clustering_and_save_objects(coordinates, output_dir, segment_id):
-    print("Clustering and separating objects from", label_to_names[segment_id], "...")
+    print("Clustering and separating objects from",
+          label_to_names[segment_id], "...")
     # Apply DBSCAN clustering to the segment's coordinates
     clustering = DBSCAN(eps=0.5, min_samples=100).fit(coordinates)
 
     # Get unique cluster labels from clustering results
     unique_labels = np.unique(clustering.labels_)
-    print(f"Number of objects in {label_to_names[segment_id]}:", len(unique_labels))
+    print(f"Number of objects in {label_to_names[segment_id]}:", len(
+        unique_labels))
 
     # Iterate over clusters and save them as separate files
     for cluster_label in unique_labels:
@@ -91,7 +95,8 @@ def clustering_and_save_objects(coordinates, output_dir, segment_id):
                                    f"segment_{segment_id}_{label_to_names[segment_id]}_object_{cluster_label}.laz")
         save_separate_laz_point_cloud(output_file, cluster_points, segment_id)
 
-    print("Clustering and saving objects from", label_to_names[segment_id], "completed.")
+    print("Clustering and saving objects from",
+          label_to_names[segment_id], "completed.")
 
 
 def separate_segmented_point_clouds(filename):
@@ -112,11 +117,13 @@ def separate_segmented_point_clouds(filename):
     # Add each segment to the task queue
     for segment_id in segment_ids:
         segment_points = inFile.points[inFile.pred == segment_id]
-        coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+        coordinates = np.vstack(
+            (segment_points['x'], segment_points['y'], segment_points['z'])).T
         task_queue.put((coordinates, output_dir, segment_id))
 
         # Save the segmented point cloud as a .laz file
-        output_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+        output_file = os.path.join(
+            segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
         save_separate_laz_point_cloud(output_file, coordinates)
 
     # Create a process pool to cluster the segments in parallel
@@ -155,7 +162,8 @@ def separate_and_segment_point_clouds(filename):
     # with Pool(processes=4) as pool:
     for segment_id in segment_ids:
         # Save the segmented point cloud
-        segment_file = os.path.join(segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
+        segment_file = os.path.join(
+            segment_dir, f"segment_{segment_id}_{label_to_names[segment_id]}.laz")
         save_separate_laz_point_cloud(segment_file, inFile, segment_id)
 
         # Cluster each segment in parallel
@@ -178,11 +186,13 @@ def separate_instance_objects(input_file, output_dir, label_id):
         segment_points = inFile.points[inFile.segment_id == obj_id]
 
         # Extract the coordinates from the segment_points array
-        coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+        coordinates = np.vstack(
+            (segment_points['x'], segment_points['y'], segment_points['z'])).T
         print(len(coordinates))
 
         # Save the point cloud as a .laz file
-        output_file = os.path.join(output_dir, f"segment_{label_id}_{label_to_names[label_id]}_object_{obj_id}.laz")
+        output_file = os.path.join(
+            output_dir, f"segment_{label_id}_{label_to_names[label_id]}_object_{obj_id}.laz")
         save_separate_laz_point_cloud_objects(output_file, inFile, obj_id)
 
 
@@ -220,4 +230,5 @@ def separate_and_cluster_point_cloud_objects(filename):
 
             # separate instances
             filepath = os.path.join(segment_dir, segment_file)
-            pool.apply_async(separate_instance_objects, args=(filepath, output_dir, int(segment_file.split("_")[1])))
+            pool.apply_async(separate_instance_objects, args=(
+                filepath, output_dir, int(segment_file.split("_")[1])))

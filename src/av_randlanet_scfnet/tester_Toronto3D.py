@@ -51,10 +51,12 @@ class ModelTester:
         self.sess.run(dataset.test_init_op)
 
         # Test saving path
-        saving_path = time.strftime('results/Log_%Y-%m-%d_%H-%M-%S', time.gmtime())
+        saving_path = time.strftime(
+            'results/Log_%Y-%m-%d_%H-%M-%S', time.gmtime())
         test_path = join('test', saving_path.split('/')[-1])
         makedirs(test_path) if not exists(test_path) else None
-        makedirs(join(test_path, 'predictions')) if not exists(join(test_path, 'predictions')) else None
+        makedirs(join(test_path, 'predictions')) if not exists(
+            join(test_path, 'predictions')) else None
         # makedirs(join(test_path, 'probs')) if not exists(join(test_path, 'probs')) else None
 
         #####################
@@ -74,7 +76,8 @@ class ModelTester:
                        model.inputs['input_inds'],
                        model.inputs['cloud_inds'],)
 
-                stacked_probs, stacked_labels, point_idx, cloud_idx = self.sess.run(ops, {model.is_training: False})
+                stacked_probs, stacked_labels, point_idx, cloud_idx = self.sess.run(
+                    ops, {model.is_training: False})
                 stacked_probs = np.reshape(stacked_probs, [model.config.val_batch_size, model.config.num_points,
                                                            model.config.num_classes])
 
@@ -82,7 +85,8 @@ class ModelTester:
                     probs = stacked_probs[j, :, :]
                     inds = point_idx[j, :]
                     c_i = cloud_idx[j][0]
-                    self.test_probs[c_i][inds] = test_smooth * self.test_probs[c_i][inds] + (1 - test_smooth) * probs
+                    self.test_probs[c_i][inds] = test_smooth * \
+                        self.test_probs[c_i][inds] + (1 - test_smooth) * probs
                 step_id += 1
                 log_string('Epoch {:3d}, step {:3d}. min possibility = {:.1f}'.format(epoch_id, step_id, np.min(
                     dataset.min_possibility['test'])), self.log_out)
@@ -91,18 +95,21 @@ class ModelTester:
 
                 # Save predicted cloud
                 new_min = np.min(dataset.min_possibility['test'])
-                log_string('Epoch {:3d}, end. Min possibility = {:.1f}'.format(epoch_id, new_min), self.log_out)
+                log_string('Epoch {:3d}, end. Min possibility = {:.1f}'.format(
+                    epoch_id, new_min), self.log_out)
 
                 if last_min + 1 < new_min:
 
-                    print('Prediction done in {:.1f} s\n'.format(time.time() - t0))
+                    print('Prediction done in {:.1f} s\n'.format(
+                        time.time() - t0))
                     print('Saving clouds')
 
                     # Update last_min
                     last_min = new_min
 
                     # Project predictions
-                    print('\nReproject Vote #{:d}'.format(int(np.floor(new_min))))
+                    print('\nReproject Vote #{:d}'.format(
+                        int(np.floor(new_min))))
                     t1 = time.time()
                     files = dataset.test_files
                     i_test = 0
@@ -114,7 +121,8 @@ class ModelTester:
                             points = self.load_test_points(file_path)
 
                         # Reproject probs
-                        probs = np.zeros(shape=[np.shape(points)[0], 8], dtype=np.float16)
+                        probs = np.zeros(
+                            shape=[np.shape(points)[0], 8], dtype=np.float16)
                         proj_index = dataset.test_proj[i_test]
 
                         probs = self.test_probs[i_test][proj_index, :]
@@ -126,12 +134,14 @@ class ModelTester:
                                 probs2 = np.insert(probs2, l_ind, 0, axis=1)
 
                         # Get the predicted labels
-                        preds = dataset.label_values[np.argmax(probs2, axis=1)].astype(np.uint8)
+                        preds = dataset.label_values[np.argmax(
+                            probs2, axis=1)].astype(np.uint8)
 
                         # Save plys
                         cloud_name = file_path.split('/')[-1]
                         ply_name = join(test_path, 'predictions', cloud_name)
-                        write_ply(ply_name, [points, preds], ['x', 'y', 'z', 'preds'])
+                        write_ply(ply_name, [points, preds], [
+                                  'x', 'y', 'z', 'preds'])
                         log_string(ply_name + ' has saved', self.log_out)
 
                         # evaluate prediction results
@@ -141,7 +151,8 @@ class ModelTester:
                         i_test += 1
 
                     t2 = time.time()
-                    print('Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
+                    print(
+                        'Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
                     self.sess.close()
                     return
 
@@ -155,14 +166,14 @@ class ModelTester:
     def load_test_points(file_path):
         data = read_ply(file_path)
         return np.vstack((data['x'], data['y'], data['z'])).T
-    
+
     @staticmethod
     def load_evaluation_points(file_path):
         data = read_ply(file_path)
         xyz = np.vstack((data['x'], data['y'], data['z'])).T
         label = data['scalar_Label'].astype(np.uint8)
         return xyz, label
-    
+
     def evaluate(self, pred, gt):
         gt_classes = [0 for _ in range(self.config.num_classes)]
         positive_classes = [0 for _ in range(self.config.num_classes)]
@@ -184,18 +195,21 @@ class ModelTester:
         val_total_correct += correct
         val_total_seen += len(labels_valid)
 
-        conf_matrix = confusion_matrix(labels_valid, pred_valid, np.arange(0, self.config.num_classes, 1))
+        conf_matrix = confusion_matrix(
+            labels_valid, pred_valid, np.arange(0, self.config.num_classes, 1))
         gt_classes += np.sum(conf_matrix, axis=1)
         positive_classes += np.sum(conf_matrix, axis=0)
         true_positive_classes += np.diagonal(conf_matrix)
 
         iou_list = []
         for n in range(0, self.config.num_classes, 1):
-            iou = true_positive_classes[n] / float(gt_classes[n] + positive_classes[n] - true_positive_classes[n])
+            iou = true_positive_classes[n] / float(
+                gt_classes[n] + positive_classes[n] - true_positive_classes[n])
             iou_list.append(iou)
         mean_iou = sum(iou_list) / float(self.config.num_classes)
 
-        log_string('eval accuracy: {}'.format(val_total_correct / float(val_total_seen)), self.log_out)
+        log_string('eval accuracy: {}'.format(
+            val_total_correct / float(val_total_seen)), self.log_out)
         log_string('mean IOU:{}'.format(mean_iou), self.log_out)
 
         mean_iou = 100 * mean_iou
@@ -207,5 +221,3 @@ class ModelTester:
         log_string(s, self.log_out)
         log_string('-' * len(s) + '\n', self.log_out)
         return mean_iou
-
-

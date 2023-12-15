@@ -15,7 +15,9 @@ from samgeo.text_sam import LangSAM
 from typing import List, Tuple, Union
 import rasterio
 import laspy
-from segment_lidar.view import TopView, PinholeView
+# from segment_lidar.view import TopView, PinholeView
+from view import TopView, PinholeView
+
 
 class SamLidar:
     class mask:
@@ -91,7 +93,8 @@ class SamLidar:
         self.height = height
         self.width = width
         self.distance_threshold = distance_threshold
-        self.device = torch.device('cuda:0') if device == 'cuda:0' and torch.cuda.is_available() else torch.device('cpu')
+        self.device = torch.device(
+            'cuda:0') if device == 'cuda:0' and torch.cuda.is_available() else torch.device('cpu')
         self.mask = SamLidar.mask()
         self.text_prompt = SamLidar.text_prompt()
         self.intrinsics = intrinsics
@@ -101,7 +104,8 @@ class SamLidar:
 
         if algorithm == 'segment-anything':
             self.mask_generator = SamAutomaticMaskGenerator(
-                model=sam_model_registry[model_type](checkpoint=ckpt_path).to(device=self.device),
+                model=sam_model_registry[model_type](
+                    checkpoint=ckpt_path).to(device=self.device),
                 crop_n_layers=self.mask.crop_n_layers,
                 crop_n_points_downscale_factor=self.mask.crop_n_points_downscale_factor,
                 min_mask_region_area=self.mask.min_mask_region_area,
@@ -130,7 +134,6 @@ class SamLidar:
 
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-
     def read(self, path: str, classification: int = None) -> np.ndarray:
         """
         Reads a point cloud from a file and returns it as a NumPy array.
@@ -147,7 +150,8 @@ class SamLidar:
         extension = os.path.splitext(path)[1]
         try:
             if extension not in ['.laz', '.las']:
-                raise ValueError(f'The input file format {extension} is not supported.\nThe file format should be [.las/.laz].')
+                raise ValueError(
+                    f'The input file format {extension} is not supported.\nThe file format should be [.las/.laz].')
         except ValueError as error:
             message = str(error)
             lines = message.split('\n')
@@ -167,10 +171,13 @@ class SamLidar:
             else:
                 try:
                     if hasattr(las, 'classification'):
-                        print(f'- Reading points with classification value {classification}...')
-                        pcd = las.points[las.raw_classification == classification]
+                        print(
+                            f'- Reading points with classification value {classification}...')
+                        pcd = las.points[las.raw_classification ==
+                                         classification]
                     else:
-                        raise ValueError(f'The input file does not contain classification values.')
+                        raise ValueError(
+                            f'The input file does not contain classification values.')
                 except ValueError as error:
                     message = str(error)
                     lines = message.split('\n')
@@ -180,15 +187,16 @@ class SamLidar:
 
             if hasattr(las, 'red') and hasattr(las, 'green') and hasattr(las, 'blue'):
                 print(f'- Reading RGB values...')
-                points = np.vstack((pcd.x, pcd.y, pcd.z, pcd.red / 255.0, pcd.green / 255.0, pcd.blue / 255.0)).transpose()
+                points = np.vstack((pcd.x, pcd.y, pcd.z, pcd.red / 255.0,
+                                   pcd.green / 255.0, pcd.blue / 255.0)).transpose()
             else:
                 print(f'- RGB values are not provided. Reading only XYZ values...')
                 points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose()
 
         end = time.time()
-        print(f'File reading is completed in {end - start:.2f} seconds. The point cloud contains {points.shape[0]} points.\n')
+        print(
+            f'File reading is completed in {end - start:.2f} seconds. The point cloud contains {points.shape[0]} points.\n')
         return points
-
 
     def csf(self, points: np.ndarray, class_threshold: float = 0.5, cloth_resolution: float = 0.2, iterations: int = 500, slope_smooth: bool = False, csf_path: str = None, exists: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -237,26 +245,31 @@ class SamLidar:
                 lidar.blue = points[:, 5] * 255
                 classification = np.full(points.shape[0], 0)
                 classification[ground] = 1
-                lidar.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
+                lidar.add_extra_dim(laspy.ExtraBytesParams(
+                    name="ground", type=np.int8))
                 lidar.ground = classification
                 lidar.write(csf_path)
 
             end = time.time()
-            print(f'CSF algorithm is completed in {end - start:.2f} seconds. The filtered non-ground cloud contains {points.shape[0]} points.\n')
+            print(
+                f'CSF algorithm is completed in {end - start:.2f} seconds. The filtered non-ground cloud contains {points.shape[0]} points.\n')
 
         else:
             print(f'Reading {csf_path}...')
             las = laspy.read(csf_path)
             ground = las[las.ground == 1]
-            ground = np.vstack((ground.x, ground.y, ground.z, ground.red / 255.0, ground.green / 255.0, ground.blue / 255.0)).transpose()
+            ground = np.vstack((ground.x, ground.y, ground.z, ground.red /
+                               255.0, ground.green / 255.0, ground.blue / 255.0)).transpose()
             non_ground = las[las.ground == 0]
-            non_ground = np.vstack((non_ground.x, non_ground.y, non_ground.z, non_ground.red / 255.0, non_ground.green / 255.0, non_ground.blue / 255.0)).transpose()
+            non_ground = np.vstack((non_ground.x, non_ground.y, non_ground.z, non_ground.red /
+                                   255.0, non_ground.green / 255.0, non_ground.blue / 255.0)).transpose()
             las = las[las.ground == 0]
-            cloud = np.vstack((las.x, las.y, las.z, las.red / 255.0, las.green / 255.0, las.blue / 255.0)).transpose()
-            print(f'File reading is completed. The filtered non-ground cloud contains {non_ground.shape[0]} points.\n')
+            cloud = np.vstack((las.x, las.y, las.z, las.red / 255.0,
+                              las.green / 255.0, las.blue / 255.0)).transpose()
+            print(
+                f'File reading is completed. The filtered non-ground cloud contains {non_ground.shape[0]} points.\n')
 
         return cloud, np.asarray(non_ground), np.asarray(ground)
-
 
     def segment(self, points: np.ndarray, view: Union[TopView, PinholeView] = TopView(), image_path: str = 'raster.tif', labels_path: str = 'labeled.tif', image_exists: bool = False, label_exists: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -293,12 +306,15 @@ class SamLidar:
             print(f'- Reading segmented image...')
 
         if view.__class__.__name__ == 'TopView':
-            image = view.cloud_to_image(points=points, resolution=self.resolution)
+            image = view.cloud_to_image(
+                points=points, resolution=self.resolution)
         elif view.__class__.__name__ == 'PinholeView':
             if self.interactive:
-                image, K, pose = view.cloud_to_image(points=points, resolution=self.resolution, distance_threshold=self.distance_threshold)
+                image, K, pose = view.cloud_to_image(
+                    points=points, resolution=self.resolution, distance_threshold=self.distance_threshold)
             else:
-                image, K, pose = view.cloud_to_image(points=points, resolution=self.resolution, distance_threshold=self.distance_threshold, intrinsics=self.intrinsics, rotation=self.rotation, translation=self.translation)
+                image, K, pose = view.cloud_to_image(points=points, resolution=self.resolution, distance_threshold=self.distance_threshold,
+                                                     intrinsics=self.intrinsics, rotation=self.rotation, translation=self.translation)
 
         image = np.asarray(image).astype(np.uint8)
 
@@ -322,7 +338,8 @@ class SamLidar:
         if not label_exists:
             print(f'- Applying {self.algorithm} to raster image...')
             if self.algorithm == 'segment-anything':
-                sam = sam_model_registry[self.model_type](checkpoint=self.ckpt_path)
+                sam = sam_model_registry[self.model_type](
+                    checkpoint=self.ckpt_path)
                 sam.to(self.device)
 
                 image_rgb = image_rgb.transpose(1, 2, 0)
@@ -352,11 +369,13 @@ class SamLidar:
                 if self.text_prompt.text is not None:
                     print(f'- Generating labels using text prompt...')
                     sam = LangSAM()
-                    sam.predict(image=image_path, text_prompt=self.text_prompt.text, box_threshold=self.text_prompt.box_threshold, text_threshold=self.text_prompt.text_threshold, output=labels_path)
+                    sam.predict(image=image_path, text_prompt=self.text_prompt.text, box_threshold=self.text_prompt.box_threshold,
+                                text_threshold=self.text_prompt.text_threshold, output=labels_path)
                     print(f'- Saving segmented image...')
                 else:
                     sam = self.sam_geo
-                    sam.generate(source=image_path, output=labels_path, erosion_kernel=(3, 3), foreground=True, unique=True)
+                    sam.generate(source=image_path, output=labels_path, erosion_kernel=(
+                        3, 3), foreground=True, unique=True)
                     print(f'- Saving segmented image...')
 
         with rasterio.open(labels_path, 'r') as src:
@@ -365,18 +384,20 @@ class SamLidar:
 
         print(f'- Generating segment IDs...')
         if view.__class__.__name__ == 'TopView':
-            segment_ids = view.image_to_cloud(points=points, image=segmented_image, resolution=self.resolution)
+            segment_ids = view.image_to_cloud(
+                points=points, image=segmented_image, resolution=self.resolution)
         elif view.__class__.__name__ == 'PinholeView':
-            segment_ids = view.image_to_cloud(points=points, image=segmented_image, intrinsics=K, extrinsics=pose)
+            segment_ids = view.image_to_cloud(
+                points=points, image=segmented_image, intrinsics=K, extrinsics=pose)
         end = time.time()
 
-        print(f'Segmentation is completed in {end - start:.2f} seconds. Number of instances: {np.max(segmented_image)}\n')
+        print(
+            f'Segmentation is completed in {end - start:.2f} seconds. Number of instances: {np.max(segmented_image)}\n')
 
         if view.__class__.__name__ == 'TopView':
             return segment_ids, segmented_image, image_rgb
         elif view.__class__.__name__ == 'PinholeView':
             return segment_ids, segmented_image, image_rgb, K, pose
-
 
     def write(self, points: np.ndarray, segment_ids: np.ndarray, non_ground: np.ndarray = None, ground: np.ndarray = None, save_path: str = 'segmented.las', ground_path: str = None) -> None:
         """
@@ -403,14 +424,17 @@ class SamLidar:
         if ground_path is not None:
             las = laspy.read(ground_path)
             ground = las[las.classification == 1]
-            ground = np.vstack((ground.x, ground.y, ground.z, ground.red / 255.0, ground.green / 255.0, ground.blue / 255.0)).transpose()
+            ground = np.vstack((ground.x, ground.y, ground.z, ground.red /
+                               255.0, ground.green / 255.0, ground.blue / 255.0)).transpose()
             non_ground = las[las.classification == 0]
-            non_ground = np.vstack((non_ground.x, non_ground.y, non_ground.z, non_ground.red / 255.0, non_ground.green / 255.0, non_ground.blue / 255.0)).transpose()
+            non_ground = np.vstack((non_ground.x, non_ground.y, non_ground.z, non_ground.red /
+                                   255.0, non_ground.green / 255.0, non_ground.blue / 255.0)).transpose()
 
         extension = os.path.splitext(save_path)[1]
         try:
             if extension not in ['.laz', '.las']:
-                raise ValueError(f'The input file format {extension} is not supported.\nThe file format should be [.las/.laz].')
+                raise ValueError(
+                    f'The input file format {extension} is not supported.\nThe file format should be [.las/.laz].')
         except ValueError as error:
             message = str(error)
             lines = message.split('\n')
@@ -442,7 +466,8 @@ class SamLidar:
                     lidar.blue = cloud[:, 5] * 255
 
             segment_ids = np.append(segment_ids, np.full(len(ground), -1))
-            lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
+            lidar.add_extra_dim(laspy.ExtraBytesParams(
+                name="segment_id", type=np.int32))
             lidar.segment_id = segment_ids
         else:
             lidar.xyz = points[:, :3]
@@ -450,7 +475,8 @@ class SamLidar:
                 lidar.red = points[:, 3] * 255
                 lidar.green = points[:, 4] * 255
                 lidar.blue = points[:, 5] * 255
-            lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
+            lidar.add_extra_dim(laspy.ExtraBytesParams(
+                name="segment_id", type=np.int32))
             lidar.segment_id = segment_ids
 
         lidar.write(save_path)

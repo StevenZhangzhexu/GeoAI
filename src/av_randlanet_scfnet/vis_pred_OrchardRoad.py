@@ -97,7 +97,6 @@ def viz_pred_objdet(filename):
     v.visualize(pcs_with_pred)
 
 
-
 if __name__ == "__main__":
 
     logging.basicConfig(

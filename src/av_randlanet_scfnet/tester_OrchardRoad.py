@@ -40,7 +40,8 @@ class ModelTester:
                            for l in dataset.input_trees['predict']]
 
         self.config = config
-        self.log_out = open(join('av_randlanet_scfnet/results/%s/' % filename, 'log_test.txt'), 'a')
+        self.log_out = open(
+            join('av_randlanet_scfnet/results/%s/' % filename, 'log_test.txt'), 'a')
 
     def infer(self, model, dataset, filename, num_votes=100):
 
@@ -70,7 +71,8 @@ class ModelTester:
                        model.inputs['input_inds'],
                        model.inputs['cloud_inds'],)
 
-                stacked_probs, point_idx, cloud_idx = self.sess.run(ops, {model.is_training: False})
+                stacked_probs, point_idx, cloud_idx = self.sess.run(
+                    ops, {model.is_training: False})
                 stacked_probs = np.reshape(stacked_probs, [model.config.val_batch_size, model.config.num_points,
                                                            model.config.num_classes])
 
@@ -78,7 +80,8 @@ class ModelTester:
                     probs = stacked_probs[j, :, :]
                     inds = point_idx[j, :]
                     c_i = cloud_idx[j][0]
-                    self.test_probs[c_i][inds] = test_smooth * self.test_probs[c_i][inds] + (1 - test_smooth) * probs
+                    self.test_probs[c_i][inds] = test_smooth * \
+                        self.test_probs[c_i][inds] + (1 - test_smooth) * probs
                 step_id += 1
                 log_string('Epoch {:3d}, step {:3d}. min possibility = {:.1f}'.format(epoch_id, step_id, np.min(
                     dataset.min_possibility['predict'])), self.log_out)
@@ -87,15 +90,18 @@ class ModelTester:
 
                 # Save predicted cloud
                 new_min = np.min(dataset.min_possibility['predict'])
-                log_string('Epoch {:3d}, end. Min possibility = {:.1f}'.format(epoch_id, new_min), self.log_out)
+                log_string('Epoch {:3d}, end. Min possibility = {:.1f}'.format(
+                    epoch_id, new_min), self.log_out)
 
                 if last_min + 1 < new_min:
 
-                    print('Prediction done in {:.1f} s\n'.format(time.time() - t0))
+                    print('Prediction done in {:.1f} s\n'.format(
+                        time.time() - t0))
                     print('Saving clouds')
 
                     # Project predictions
-                    print('\nReproject Vote #{:d}'.format(int(np.floor(new_min))))
+                    print('\nReproject Vote #{:d}'.format(
+                        int(np.floor(new_min))))
                     t1 = time.time()
                     files = dataset.test_files
                     i_test = 0
@@ -110,19 +116,23 @@ class ModelTester:
                         print(probs.shape)
 
                         # Get the predicted labels
-                        preds = dataset.label_values[np.argmax(probs, axis=1)].astype(np.uint8)
+                        preds = dataset.label_values[np.argmax(
+                            probs, axis=1)].astype(np.uint8)
 
                         # Save laz
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
                         write_laz(pred_filepath, test_las, points, preds)
-                        save_coordinates(pred_filepath[:-4], test_las, points, preds)
-                        log_string(pred_filepath + ' has been saved.', self.log_out)
+                        save_coordinates(
+                            pred_filepath[:-4], test_las, points, preds)
+                        log_string(pred_filepath +
+                                   ' has been saved.', self.log_out)
 
                         i_test += 1
 
                     t2 = time.time()
-                    print('Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
+                    print(
+                        'Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
                     self.sess.close()
                     return
 

@@ -1,16 +1,17 @@
+from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
+from av_randlanet_scfnet.utils.helper_las import read_las
+from av_randlanet_scfnet.utils.helper_ply import write_ply
 from sklearn.neighbors import KDTree
 from os.path import join, exists, dirname, abspath
 import numpy as np
-import os, pickle
+import os
+import pickle
 import sys
 
 BASE_DIR = dirname(abspath(__file__))
 ROOT_DIR = dirname(BASE_DIR)
 sys.path.append(BASE_DIR)
 sys.path.append(ROOT_DIR)
-from av_randlanet_scfnet.utils.helper_ply import write_ply
-from av_randlanet_scfnet.utils.helper_las import read_las
-from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
 
 
 def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data/orchard_road'):
@@ -34,13 +35,16 @@ def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data
         intensity = np.zeros_like(pc.x).astype(np.uint8).reshape(-1, 1)
 
     #  Subsample to save space
-    sub_xyz, sub_colors = DP.grid_sub_sampling(xyz, features=color, labels=None, grid_size=grid_size)
-    _, sub_intensity = DP.grid_sub_sampling(xyz, features=intensity, labels=None, grid_size=grid_size)
+    sub_xyz, sub_colors = DP.grid_sub_sampling(
+        xyz, features=color, labels=None, grid_size=grid_size)
+    _, sub_intensity = DP.grid_sub_sampling(
+        xyz, features=intensity, labels=None, grid_size=grid_size)
 
     sub_colors = sub_colors / 255.0
     sub_intensity = sub_intensity[:, 0] / 255.0
     sub_ply_file = join(sub_pc_folder, file_name + '.ply')
-    write_ply(sub_ply_file, [sub_xyz, sub_colors, sub_intensity], ['x', 'y', 'z', 'red', 'green', 'blue', 'intensity'])
+    write_ply(sub_ply_file, [sub_xyz, sub_colors, sub_intensity], [
+              'x', 'y', 'z', 'red', 'green', 'blue', 'intensity'])
 
     search_tree = KDTree(sub_xyz, leaf_size=50)
     kd_tree_file = join(sub_pc_folder, file_name + '_KDTree.pkl')

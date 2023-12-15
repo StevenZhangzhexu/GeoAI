@@ -10,9 +10,9 @@ import subprocess
 app = Flask(__name__, static_folder='static/')
 
 
-@app.route('/')  
-def upload():  
-    return render_template("file_upload_form.html")  
+@app.route('/')
+def upload():
+    return render_template("file_upload_form.html")
 
 
 @app.route('/result', methods=['POST'])
@@ -37,14 +37,16 @@ def result():
 
             # separate_predicted_objects.separate_segmented_point_clouds(f.filename)
             # separate_predicted_objects.separate_and_cluster_point_clouds(f.filename)
-            separate_predicted_objects.separate_and_segment_point_clouds(f.filename)
+            separate_predicted_objects.separate_and_segment_point_clouds(
+                f.filename)
 
             # copy the results to shared folder
             helper_las.copy_predictions()
 
             # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
             # sam_instance_segmentation.run_sam_instance_segmentation(f.filename)
-            subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python', 'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
+            subprocess.run(['/home/pc1/miniconda3/envs/samlidar/bin/python',
+                           'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
             # subprocess.run(['conda', 'run', '-n', 'samlidar', 'av_randlanet_scfnet/utils/sam_instance_segmentation.py', f.filename])
             # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
 
@@ -64,5 +66,5 @@ def result():
             return render_template("error.html", name=f.filename)
 
 
-if __name__ == '__main__':  
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8001, debug=True)

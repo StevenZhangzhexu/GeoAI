@@ -10,7 +10,9 @@ import tensorflow as tf
 # import tensorflow._api.v2.compat.v1 as tf
 import numpy as np
 # import laspy
-import pickle, argparse, os
+import pickle
+import argparse
+import os
 
 from tensorflow.python.util import deprecation
 deprecation._PRINT_DEPRECATION_WARNINGS = False
@@ -21,22 +23,23 @@ class OrchardRoad:
         self.name = 'OrchardRoad'
         self.path = 'data/orchard_road'
         self.label_to_names = {
-                        0: 'Bollard',
-                        1: 'Building',
-                        2: 'Bus Stop',
-                        3: 'Control Box',
-                        4: 'Ground',
-                        5: 'Lamp Post',
-                        6: 'Pole',
-                        7: 'Railing',
-                        8: 'Road',
-                        9: 'Shrub',
-                        10: 'Sign',
-                        11: 'Solar Panel',
-                        12: 'Tree'
-                    }
+            0: 'Bollard',
+            1: 'Building',
+            2: 'Bus Stop',
+            3: 'Control Box',
+            4: 'Ground',
+            5: 'Lamp Post',
+            6: 'Pole',
+            7: 'Railing',
+            8: 'Road',
+            9: 'Shrub',
+            10: 'Sign',
+            11: 'Solar Panel',
+            12: 'Tree'
+        }
         self.num_classes = len(self.label_to_names)
-        self.label_values = np.sort([k for k, v in self.label_to_names.items()])
+        self.label_values = np.sort(
+            [k for k, v in self.label_to_names.items()])
         self.label_to_idx = {l: i for i, l in enumerate(self.label_values)}
         self.ignored_labels = np.sort([])
 
@@ -68,20 +71,23 @@ class OrchardRoad:
             cloud_split = 'test'
 
             # Name of the input files
-            kd_tree_file = join(tree_path, '{:s}_KDTree.pkl'.format(cloud_name))
+            kd_tree_file = join(
+                tree_path, '{:s}_KDTree.pkl'.format(cloud_name))
             sub_ply_file = join(tree_path, '{:s}.ply'.format(cloud_name))
 
             # read ply with data
             data = read_ply(sub_ply_file)
             # read RGB / intensity accoring to configuration
             if cfg.use_rgb and cfg.use_intensity:
-                sub_colors = np.vstack((data['red'], data['green'], data['blue'], data['intensity'])).T
+                sub_colors = np.vstack(
+                    (data['red'], data['green'], data['blue'], data['intensity'])).T
             elif cfg.use_rgb and not cfg.use_intensity:
-                sub_colors = np.vstack((data['red'], data['green'], data['blue'])).T
+                sub_colors = np.vstack(
+                    (data['red'], data['green'], data['blue'])).T
             elif not cfg.use_rgb and cfg.use_intensity:
                 sub_colors = data['intensity'].reshape(-1, 1)
             else:
-                sub_colors = np.ones((data.shape[0],1))
+                sub_colors = np.ones((data.shape[0], 1))
             if cloud_split == 'test':
                 sub_labels = None
             else:
@@ -116,7 +122,7 @@ class OrchardRoad:
             num_per_epoch = cfg.val_steps * cfg.val_batch_size
         elif split == 'test':
             num_per_epoch = cfg.val_steps * cfg.val_batch_size
-        
+
         # assign number of features according to input
         n_features = 1  # use xyz only by default
         if cfg.use_rgb and cfg.use_intensity:
@@ -131,12 +137,16 @@ class OrchardRoad:
 
         # Random initialize
         for i, tree in enumerate(self.input_trees[split]):
-            self.possibility[split] += [np.random.rand(tree.data.shape[0]) * 1e-3]
-            self.min_possibility[split] += [float(np.min(self.possibility[split][-1]))]
+            self.possibility[split] += [
+                np.random.rand(tree.data.shape[0]) * 1e-3]
+            self.min_possibility[split] += [
+                float(np.min(self.possibility[split][-1]))]
 
         if split != 'test':
-            _, num_class_total = np.unique(np.hstack(self.input_labels[split]), return_counts=True)
-            self.class_weight[split] += [np.squeeze([num_class_total / np.sum(num_class_total)], axis=0)]
+            _, num_class_total = np.unique(
+                np.hstack(self.input_labels[split]), return_counts=True)
+            self.class_weight[split] += [np.squeeze(
+                [num_class_total / np.sum(num_class_total)], axis=0)]
             # print(num_class_total, self.class_weight)
 
         def spatially_regular_gen():
@@ -151,22 +161,26 @@ class OrchardRoad:
                 point_ind = np.argmin(self.possibility[split][cloud_idx])
 
                 # Get all points within the cloud from tree structure
-                points = np.array(self.input_trees[split][cloud_idx].data, copy=False)
+                points = np.array(
+                    self.input_trees[split][cloud_idx].data, copy=False)
 
                 # Center point of input region
                 center_point = points[point_ind, :].reshape(1, -1)
 
                 # Add noise to the center point
-                noise = np.random.normal(scale=cfg.noise_init / 10, size=center_point.shape)
+                noise = np.random.normal(
+                    scale=cfg.noise_init / 10, size=center_point.shape)
                 pick_point = center_point + noise.astype(center_point.dtype)
-                query_idx = self.input_trees[split][cloud_idx].query(pick_point, k=cfg.num_points)[1][0]
+                query_idx = self.input_trees[split][cloud_idx].query(
+                    pick_point, k=cfg.num_points)[1][0]
 
                 # Shuffle index
                 query_idx = DP.shuffle_idx(query_idx)
 
                 # Get corresponding points and colors based on the index
                 queried_pc_xyz = points[query_idx]
-                queried_pc_xyz[:, 0:2] = queried_pc_xyz[:, 0:2] - pick_point[:, 0:2]
+                queried_pc_xyz[:, 0:2] = queried_pc_xyz[:,
+                                                        0:2] - pick_point[:, 0:2]
                 queried_pc_colors = self.input_colors[split][cloud_idx][query_idx]
                 # print("queried_pc_colors:", queried_pc_colors)
 
@@ -177,18 +191,23 @@ class OrchardRoad:
                 if split != 'test':
                     try:
                         queried_pc_labels = self.input_labels[split][cloud_idx][query_idx]
-                        queried_pc_labels = np.array([self.label_to_idx[l] for l in queried_pc_labels])
+                        queried_pc_labels = np.array(
+                            [self.label_to_idx[l] for l in queried_pc_labels])
                         # print(len(queried_pc_labels), "queried_pc_labels:", np.unique(queried_pc_labels))
                         # print(self.class_weight[split], self.class_weight[split][0])
-                        queried_pt_weight = np.array([self.class_weight[split][0][n] for n in queried_pc_labels])
+                        queried_pt_weight = np.array(
+                            [self.class_weight[split][0][n] for n in queried_pc_labels])
                     except Exception as err:
                         print(err)
 
                 # Update the possibility of the selected points
-                dists = np.sum(np.square((points[query_idx] - pick_point).astype(np.float32)), axis=1)
-                delta = np.square(1 - dists / np.max(dists)) * queried_pt_weight
+                dists = np.sum(
+                    np.square((points[query_idx] - pick_point).astype(np.float32)), axis=1)
+                delta = np.square(1 - dists / np.max(dists)
+                                  ) * queried_pt_weight
                 self.possibility[split][cloud_idx][query_idx] += delta
-                self.min_possibility[split][cloud_idx] = float(np.min(self.possibility[split][cloud_idx]))
+                self.min_possibility[split][cloud_idx] = float(
+                    np.min(self.possibility[split][cloud_idx]))
 
                 if True:
                     yield (queried_pc_xyz,
@@ -205,17 +224,22 @@ class OrchardRoad:
     def get_tf_mapping(self):
         # Collect flat inputs
         def tf_map(batch_xyz, batch_features, batch_labels, batch_pc_idx, batch_cloud_idx):
-            batch_features = tf.map_fn(self.tf_augment_input, [batch_xyz, batch_features], dtype=tf.float32)
+            batch_features = tf.map_fn(self.tf_augment_input, [
+                                       batch_xyz, batch_features], dtype=tf.float32)
             input_points = []
             input_neighbors = []
             input_pools = []
             input_up_samples = []
 
             for i in range(cfg.num_layers):
-                neigh_idx = tf.py_func(DP.knn_search, [batch_xyz, batch_xyz, cfg.k_n], tf.int32)
-                sub_points = batch_xyz[:, :tf.shape(batch_xyz)[1] // cfg.sub_sampling_ratio[i], :]
-                pool_i = neigh_idx[:, :tf.shape(batch_xyz)[1] // cfg.sub_sampling_ratio[i], :]
-                up_i = tf.py_func(DP.knn_search, [sub_points, batch_xyz, 1], tf.int32)
+                neigh_idx = tf.py_func(
+                    DP.knn_search, [batch_xyz, batch_xyz, cfg.k_n], tf.int32)
+                sub_points = batch_xyz[:, :tf.shape(
+                    batch_xyz)[1] // cfg.sub_sampling_ratio[i], :]
+                pool_i = neigh_idx[:, :tf.shape(
+                    batch_xyz)[1] // cfg.sub_sampling_ratio[i], :]
+                up_i = tf.py_func(
+                    DP.knn_search, [sub_points, batch_xyz, 1], tf.int32)
                 input_points.append(batch_xyz)
                 input_neighbors.append(neigh_idx)
                 input_pools.append(pool_i)
@@ -223,7 +247,8 @@ class OrchardRoad:
                 batch_xyz = sub_points
 
             input_list = input_points + input_neighbors + input_pools + input_up_samples
-            input_list += [batch_features, batch_labels, batch_pc_idx, batch_cloud_idx]
+            input_list += [batch_features, batch_labels,
+                           batch_pc_idx, batch_cloud_idx]
 
             return input_list
 
@@ -266,18 +291,22 @@ class OrchardRoad:
         # Apply scales
         transformed_xyz = transformed_xyz * stacked_scales
 
-        noise = tf.random_normal(tf.shape(transformed_xyz), stddev=cfg.augment_noise)
+        noise = tf.random_normal(
+            tf.shape(transformed_xyz), stddev=cfg.augment_noise)
         transformed_xyz = transformed_xyz + noise
         stacked_features = tf.concat([transformed_xyz, features], axis=-1)
         return stacked_features
 
     def init_train_pipeline(self):
         print('Initiating training pipelines')
-        cfg.ignored_label_inds = [self.label_to_idx[ign_label] for ign_label in self.ignored_labels]
+        cfg.ignored_label_inds = [self.label_to_idx[ign_label]
+                                  for ign_label in self.ignored_labels]
         gen_function, gen_types, gen_shapes = self.get_batch_gen('training')
         gen_function_val, _, _ = self.get_batch_gen('validation')
-        self.train_data = tf.data.Dataset.from_generator(gen_function, gen_types, gen_shapes)
-        self.val_data = tf.data.Dataset.from_generator(gen_function_val, gen_types, gen_shapes)
+        self.train_data = tf.data.Dataset.from_generator(
+            gen_function, gen_types, gen_shapes)
+        self.val_data = tf.data.Dataset.from_generator(
+            gen_function_val, gen_types, gen_shapes)
 
         self.batch_train_data = self.train_data.batch(cfg.batch_size)
         self.batch_val_data = self.val_data.batch(cfg.val_batch_size)
@@ -289,23 +318,28 @@ class OrchardRoad:
         self.batch_train_data = self.batch_train_data.prefetch(cfg.batch_size)
         self.batch_val_data = self.batch_val_data.prefetch(cfg.val_batch_size)
 
-        iter = tf.data.Iterator.from_structure(self.batch_train_data.output_types, self.batch_train_data.output_shapes)
+        iter = tf.data.Iterator.from_structure(
+            self.batch_train_data.output_types, self.batch_train_data.output_shapes)
         self.flat_inputs = iter.get_next()
         self.train_init_op = iter.make_initializer(self.batch_train_data)
         self.val_init_op = iter.make_initializer(self.batch_val_data)
 
     def init_test_pipeline(self):
         print('Initiating testing pipelines')
-        cfg.ignored_label_inds = [self.label_to_idx[ign_label] for ign_label in self.ignored_labels]
-        gen_function_test,gen_types, gen_shapes = self.get_batch_gen('test')
+        cfg.ignored_label_inds = [self.label_to_idx[ign_label]
+                                  for ign_label in self.ignored_labels]
+        gen_function_test, gen_types, gen_shapes = self.get_batch_gen('test')
 
-        self.test_data = tf.data.Dataset.from_generator(gen_function_test, gen_types, gen_shapes)
+        self.test_data = tf.data.Dataset.from_generator(
+            gen_function_test, gen_types, gen_shapes)
         self.batch_test_data = self.test_data.batch(cfg.val_batch_size)
         map_func = self.get_tf_mapping()
         self.batch_test_data = self.batch_test_data.map(map_func=map_func)
-        self.batch_test_data = self.batch_test_data.prefetch(cfg.val_batch_size)
+        self.batch_test_data = self.batch_test_data.prefetch(
+            cfg.val_batch_size)
 
-        iter = tf.data.Iterator.from_structure(self.batch_test_data.output_types, self.batch_test_data.output_shapes)
+        iter = tf.data.Iterator.from_structure(
+            self.batch_test_data.output_types, self.batch_test_data.output_shapes)
         self.flat_inputs = iter.get_next()
         self.test_init_op = iter.make_initializer(self.batch_test_data)
 
@@ -320,10 +354,13 @@ def main(pcd_filename):
 
     # checkpoint directory
     chosen_snapshot = -1
-    logs = np.sort([os.path.join('results', f) for f in os.listdir('results') if f.startswith('Log')])
+    logs = np.sort([os.path.join('results', f)
+                   for f in os.listdir('results') if f.startswith('Log')])
     chosen_folder = logs[-1]
-    snap_path = join(chosen_folder, 'snapshots')  # 'checkpoints/snapshots/' for defined saving_path
-    snap_steps = [int(f[:-5].split('-')[-1]) for f in os.listdir(snap_path) if f[-5:] == '.meta']
+    # 'checkpoints/snapshots/' for defined saving_path
+    snap_path = join(chosen_folder, 'snapshots')
+    snap_steps = [int(f[:-5].split('-')[-1])
+                  for f in os.listdir(snap_path) if f[-5:] == '.meta']
     chosen_step = np.sort(snap_steps)[chosen_snapshot]
     chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
 

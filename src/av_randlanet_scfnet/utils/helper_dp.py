@@ -1,26 +1,31 @@
+import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
+import cpp_wrappers.cpp_subsampling.grid_subsampling as cpp_subsampling
 import pandas as pd
 import numpy as np
-import colorsys, random, os, sys
+import colorsys
+import random
+import os
+import sys
 from os.path import join
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, 'utils'))
-import cpp_wrappers.cpp_subsampling.grid_subsampling as cpp_subsampling
-import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
 
 
 class DataProcessing:
     @staticmethod
     def load_pc_semantic3d(filename):
-        pc_pd = pd.read_csv(filename, header=None, delim_whitespace=True, dtype=np.float16)
+        pc_pd = pd.read_csv(filename, header=None,
+                            delim_whitespace=True, dtype=np.float16)
         pc = pc_pd.values
         return pc
 
     @staticmethod
     def load_label_semantic3d(filename):
-        label_pd = pd.read_csv(filename, header=None, delim_whitespace=True, dtype=np.uint8)
+        label_pd = pd.read_csv(filename, header=None,
+                               delim_whitespace=True, dtype=np.uint8)
         cloud_labels = label_pd.values
         return cloud_labels
 
@@ -33,7 +38,8 @@ class DataProcessing:
         :return: neighbor_idx: neighboring points indexes, B*N2*k
         """
 
-        neighbor_idx = nearest_neighbors.knn_batch(support_pts, query_pts, k, omp=True)
+        neighbor_idx = nearest_neighbors.knn_batch(
+            support_pts, query_pts, k, omp=True)
         return neighbor_idx.astype(np.int32)
 
     @staticmethod
@@ -55,7 +61,6 @@ class DataProcessing:
         idx = np.arange(len(x))
         np.random.shuffle(idx)
         return x[idx]
-
 
     @staticmethod
     def grid_sub_sampling(points, features=None, labels=None, grid_size=0.1, verbose=0):
@@ -117,7 +122,8 @@ class DataProcessing:
             num_per_class = np.array([5181602, 5012952, 6830086, 1311528, 10476365, 946982, 334860, 269353],
                                      dtype=np.int32)
         elif dataset_name is 'OrchardRoad':
-            num_per_class = np.array([139949, 1637981, 139070, 97416, 6045740, 1926076, 11937, 549852, 64972574, 9352595, 859626, 322478, 20156805], dtype=np.int32)
+            num_per_class = np.array([139949, 1637981, 139070, 97416, 6045740, 1926076,
+                                     11937, 549852, 64972574, 9352595, 859626, 322478, 20156805], dtype=np.int32)
 
         weight = num_per_class / float(sum(num_per_class))
         ce_label_weight = 1 / (weight + 0.02)

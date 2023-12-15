@@ -19,7 +19,8 @@ def _variable_on_cpu(name, shape, initializer, use_fp16=False):
     """
     with tf.device('/cpu:0'):
         dtype = tf.float16 if use_fp16 else tf.float32
-        var = tf.get_variable(name, shape, initializer=initializer, dtype=dtype)
+        var = tf.get_variable(
+            name, shape, initializer=initializer, dtype=dtype)
     return var
 
 
@@ -47,7 +48,8 @@ def _variable_with_weight_decay(name, shape, stddev, wd, use_xavier=True):
         # initializer = tf.truncated_normal_initializer(stddev=stddev)
         with tf.device('/cpu:0'):
             var = tf.truncated_normal(shape, stddev=np.sqrt(2 / shape[-1]))
-            var = tf.round(var * tf.constant(1000, dtype=tf.float32)) / tf.constant(1000, dtype=tf.float32)
+            var = tf.round(var * tf.constant(1000, dtype=tf.float32)
+                           ) / tf.constant(1000, dtype=tf.float32)
             var = tf.Variable(var, name='weights')
     if wd is not None:
         weight_decay = tf.multiply(tf.nn.l2_loss(var), wd, name='weight_loss')
@@ -164,7 +166,8 @@ def conv2d(inputs,
         outputs = tf.nn.bias_add(outputs, biases)
 
         if bn:
-            outputs = tf.layers.batch_normalization(outputs, momentum=0.99, epsilon=1e-6, training=is_training)
+            outputs = tf.layers.batch_normalization(
+                outputs, momentum=0.99, epsilon=1e-6, training=is_training)
         if activation_fn is not None:
             outputs = tf.nn.leaky_relu(outputs, alpha=0.2)
         return outputs
@@ -231,7 +234,8 @@ def conv2d_transpose(inputs,
         width = tf.shape(inputs)[2]
         out_height = get_deconv_dim(height, stride_h, kernel_h, padding)
         out_width = get_deconv_dim(width, stride_w, kernel_w, padding)
-        output_shape = tf.stack([batch_size, out_height, out_width, num_output_channels], axis=0)
+        output_shape = tf.stack(
+            [batch_size, out_height, out_width, num_output_channels], axis=0)
 
         outputs = tf.nn.conv2d_transpose(inputs, kernel, output_shape,
                                          [1, stride_h, stride_w, 1],
@@ -243,7 +247,8 @@ def conv2d_transpose(inputs,
         if bn:
             # outputs = batch_norm_for_conv2d(outputs, is_training,
             #                                 bn_decay=bn_decay, scope='bn')
-            outputs = tf.layers.batch_normalization(outputs, momentum=0.99, epsilon=1e-6, training=is_training)
+            outputs = tf.layers.batch_normalization(
+                outputs, momentum=0.99, epsilon=1e-6, training=is_training)
         if activation_fn is not None:
             # outputs = activation_fn(outputs)
             outputs = tf.nn.leaky_relu(outputs, alpha=0.2)
@@ -332,7 +337,8 @@ def fully_connected(inputs,
     with tf.variable_scope(scope) as sc:
         num_input_units = inputs.get_shape()[-1].value
         weights = _variable_with_weight_decay('weights',
-                                              shape=[num_input_units, num_outputs],
+                                              shape=[num_input_units,
+                                                     num_outputs],
                                               use_xavier=use_xavier,
                                               stddev=stddev,
                                               wd=weight_decay)
@@ -422,7 +428,8 @@ def max_pool3d(inputs,
         stride_d, stride_h, stride_w = stride
         outputs = tf.nn.max_pool3d(inputs,
                                    ksize=[1, kernel_d, kernel_h, kernel_w, 1],
-                                   strides=[1, stride_d, stride_h, stride_w, 1],
+                                   strides=[1, stride_d,
+                                            stride_h, stride_w, 1],
                                    padding=padding,
                                    name=sc.name)
         return outputs
@@ -448,7 +455,8 @@ def avg_pool3d(inputs,
         stride_d, stride_h, stride_w = stride
         outputs = tf.nn.avg_pool3d(inputs,
                                    ksize=[1, kernel_d, kernel_h, kernel_w, 1],
-                                   strides=[1, stride_d, stride_h, stride_w, 1],
+                                   strides=[1, stride_d,
+                                            stride_h, stride_w, 1],
                                    padding=padding,
                                    name=sc.name)
         return outputs
@@ -473,7 +481,8 @@ def batch_norm_template(inputs, is_training, scope, moments_dims, bn_decay):
                            name='beta', trainable=True)
         gamma = tf.Variable(tf.constant(1.0, shape=[num_channels]),
                             name='gamma', trainable=True)
-        batch_mean, batch_var = tf.nn.moments(inputs, moments_dims, name='moments')
+        batch_mean, batch_var = tf.nn.moments(
+            inputs, moments_dims, name='moments')
         decay = bn_decay if bn_decay is not None else 0.9
         ema = tf.train.ExponentialMovingAverage(decay=decay)
         # Operator that maintains moving averages of variables.
@@ -490,7 +499,8 @@ def batch_norm_template(inputs, is_training, scope, moments_dims, bn_decay):
         mean, var = tf.cond(is_training,
                             mean_var_with_update,
                             lambda: (ema.average(batch_mean), ema.average(batch_var)))
-        normed = tf.nn.batch_normalization(inputs, mean, var, beta, gamma, 1e-3)
+        normed = tf.nn.batch_normalization(
+            inputs, mean, var, beta, gamma, 1e-3)
     return normed
 
 
@@ -569,6 +579,7 @@ def dropout(inputs,
     """
     with tf.variable_scope(scope) as sc:
         outputs = tf.cond(is_training,
-                          lambda: tf.nn.dropout(inputs, keep_prob, noise_shape),
+                          lambda: tf.nn.dropout(
+                              inputs, keep_prob, noise_shape),
                           lambda: inputs)
         return outputs

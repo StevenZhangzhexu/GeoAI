@@ -18,7 +18,8 @@ except ValueError:
 
 def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_id):
     segment_points = las_reader.points[las_reader.segment_id == object_id]
-    points = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+    points = np.vstack(
+        (segment_points['x'], segment_points['y'], segment_points['z'])).T
 
     header = laspy.LasHeader(point_format=3, version="1.2")
     header.offsets = np.min(points, axis=0)
@@ -58,13 +59,17 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
             segment_points = inFile.points[inFile.segment_id == obj_id]
 
             # Extract the coordinates from the segment_points array
-            coordinates = np.vstack((segment_points['x'], segment_points['y'], segment_points['z'])).T
+            coordinates = np.vstack(
+                (segment_points['x'], segment_points['y'], segment_points['z'])).T
             print(len(coordinates))
 
             # Save the point cloud as a .laz file
-            output_filepath = os.path.join(output_dir, f"{seg_name}_object_{obj_id}.laz")
-            save_separate_laz_point_cloud_objects(output_filepath, inFile, obj_id)
-            calc_coords = helper_las.convert_and_save_wgs84(output_filepath, coordinates)
+            output_filepath = os.path.join(
+                output_dir, f"{seg_name}_object_{obj_id}.laz")
+            save_separate_laz_point_cloud_objects(
+                output_filepath, inFile, obj_id)
+            calc_coords = helper_las.convert_and_save_wgs84(
+                output_filepath, coordinates)
             object_coords.append({
                 "id": seg_name + "_" + str(i),
                 # "coords": bc_coord
@@ -82,7 +87,7 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
 def run_sam_instance_segmentation(filename):
     # from segment_lidar import samlidar
-    import samlidar
+    from sam_lidar import samlidar
     print("Running SAM-LiDAR Instance Segmentation for", filename)
     seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
@@ -104,9 +109,11 @@ def run_sam_instance_segmentation(filename):
             try:
                 points = model.read(seg_path)
                 labels, *_ = model.segment(points=points)
-                model.write(points=points, segment_ids=labels, save_path=sam_path)
+                model.write(points=points, segment_ids=labels,
+                            save_path=sam_path)
                 print("Saved SAM instance segmentation for", each)
-                object_coords = separate_and_cluster_point_cloud_objects(seg_path, obj_dir)
+                object_coords = separate_and_cluster_point_cloud_objects(
+                    seg_path, obj_dir)
                 segment_objects.append(object_coords)
             except Exception as err:
                 print(err)

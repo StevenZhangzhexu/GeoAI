@@ -10,7 +10,8 @@ def get_base_center_coord(coords):
     base_point = coords[np.argmin(coords[:, 2])]
     base_centroid = centroid.copy()
     base_centroid[2] = base_point[2]
-    print("centroid:", centroid, ", base_point:", base_point, ", base_centroid:", base_centroid)
+    print("centroid:", centroid, ", base_point:",
+          base_point, ", base_centroid:", base_centroid)
 
     return base_centroid
 
@@ -56,7 +57,9 @@ def draw_line_and_get_points(x1, y1, x2, y2, resolution=100):
 
 def get_closest_road_center(object_center):
     middle_points_3d = []
-    middle_points = draw_line_and_get_points(103.83647747, 1.30250373, 103.83390328, 1.30384428, resolution=100)    # main orchard road @TODO: get start and end of the road automatically
+    # main orchard road @TODO: get start and end of the road automatically
+    middle_points = draw_line_and_get_points(
+        103.83647747, 1.30250373, 103.83390328, 1.30384428, resolution=100)
     for each in middle_points:
         t = [each[0], each[1], object_center[2]]
         middle_points_3d.append(t)
@@ -94,10 +97,10 @@ def get_center_base_coord(coordinates):
     center_coordinate = np.mean(coordinates, axis=0)
 
     base_center_coord = {
-            'x': center_coordinate[0],
-            'y': center_coordinate[1],
-            # 'z': center_coordinate[2],
-            'z': base_point[2],
+        'x': center_coordinate[0],
+        'y': center_coordinate[1],
+        # 'z': center_coordinate[2],
+        'z': base_point[2],
     }
     print(base_center_coord)
 
@@ -180,4 +183,3 @@ def get_start_end_middle_coordinates(coordinates):
 def save_objects_json(output_file_path, objects):
     with open(output_file_path, 'w') as json_file:
         json.dump(objects, json_file, indent=4)
-
