@@ -11,11 +11,11 @@ pip install -r requirements_main.txt
 ```
 
 ```
-conda create -n samlidar -y python=3.11
+conda create -n samlidar -y python=3.10
 conda activate samlidar
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install segment-lidar
-pip install -r requirements_samlidar.txt
+pip install git+https://github.com/IDEA-Research/GroundingDINO.git
 ```
 
 ```
