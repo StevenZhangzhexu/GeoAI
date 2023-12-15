@@ -86,14 +86,14 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
 
 def run_sam_instance_segmentation(filename):
-    from segment_lidar import samlidar, view
+    from segment_lidar import samlidar
     # import samlidar
     # from segment_lidar import view
 
     print("Running SAM-LiDAR Instance Segmentation for", filename)
     seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
-    viewpoint = view.TopView()
+    # viewpoint = view.TopView()
     sam_dir = 'av_randlanet_scfnet/results/%s/separate_instances/' % filename
     os.makedirs(sam_dir, exist_ok=True)
     obj_dir = 'av_randlanet_scfnet/results/%s/separate_objects/' % filename
@@ -111,9 +111,9 @@ def run_sam_instance_segmentation(filename):
         if os.path.exists(seg_path):
             try:
                 points = model.read(seg_path)
-                # labels, *_ = model.segment(points=points)
-                labels, *_ = model.segment(points=points, view=viewpoint, image_path="raster.tif",
-                                           labels_path="labeled.tif")
+                labels, *_ = model.segment(points=points)
+                # labels, *_ = model.segment(points=points, view=viewpoint, image_path="raster.tif",
+                #                            labels_path="labeled.tif")
                 model.write(points=points, segment_ids=labels,
                             save_path=sam_path)
                 print("Saved SAM instance segmentation for", each)
