@@ -15,8 +15,8 @@ from samgeo.text_sam import LangSAM
 from typing import List, Tuple, Union
 import rasterio
 import laspy
-from segment_lidar.view import TopView, PinholeView
-# from view import TopView, PinholeView
+# from segment_lidar.view import TopView, PinholeView
+from view import TopView, PinholeView
 
 
 class SamLidar:
