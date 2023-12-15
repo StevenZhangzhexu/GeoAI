@@ -281,7 +281,7 @@ class SamLidar:
 
         directory = os.path.dirname(labels_path)
         if not os.path.exists(directory):
-            os.makedirs(directory)
+            os.makedirs(directory, exist_ok=True)
 
         if image_exists:
             print(f'- Reading raster image...')
@@ -396,7 +396,7 @@ class SamLidar:
 
         directory = os.path.dirname(save_path)
         if not os.path.exists(directory) and directory != '':
-            os.makedirs(directory)
+            os.makedirs(directory, exist_ok=True)
 
         if ground_path is not None:
             las = laspy.read(ground_path)
