@@ -86,8 +86,8 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
 
 def run_sam_instance_segmentation(filename):
-    # from segment_lidar import samlidar
-    import samlidar
+    from segment_lidar import samlidar
+    # import samlidar
     # from segment_lidar import view
 
     print("Running SAM-LiDAR Instance Segmentation for", filename)
@@ -118,7 +118,7 @@ def run_sam_instance_segmentation(filename):
                             save_path=sam_path)
                 print("Saved SAM instance segmentation for", each)
                 object_coords = separate_and_cluster_point_cloud_objects(
-                    seg_path, obj_dir)
+                    sam_path, obj_dir)
                 segment_objects.append(object_coords)
             except Exception as err:
                 print(err)
