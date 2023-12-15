@@ -7,7 +7,7 @@ conda create -n randlanet -y python=3.6
 conda activate randlanet
 pip install -r requirements.txt
 cd src/av_randlanet_scfnet/
-pip install -r requirements.txt
+pip install -r requirements_main.txt
 ```
 
 ```
@@ -15,6 +15,7 @@ conda create -n samlidar -y python=3.11
 conda activate samlidar
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install segment-lidar
+pip install -r requirements_samlidar.txt
 ```
 
 ```
