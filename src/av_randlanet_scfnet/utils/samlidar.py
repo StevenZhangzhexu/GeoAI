@@ -234,7 +234,7 @@ class SamLidar:
                 header.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
                 header.offsets = np.min(points[:, :3], axis=0)
                 header.scales = np.array([0.1, 0.1, 0.1])
-                lidar = laspy.LasData(header=header)
+                lidar = laspy.LasData(header)
                 lidar.xyz = points[:, :3]
                 lidar.red = points[:, 3] * 255
                 lidar.green = points[:, 4] * 255
@@ -427,7 +427,7 @@ class SamLidar:
         header.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
         header.offsets = np.min(points[:, :3], axis=0)
         header.scales = np.array([0.1, 0.1, 0.1])
-        lidar = laspy.LasData(header=header)
+        lidar = laspy.LasData(header)
 
         if ground is not None:
             cloud = np.concatenate((ground, non_ground))
