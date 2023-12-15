@@ -81,8 +81,8 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
 
 def run_sam_instance_segmentation(filename):
-    from segment_lidar import samlidar
-    # import samlidar
+    # from segment_lidar import samlidar
+    import samlidar
     print("Running SAM-LiDAR Instance Segmentation for", filename)
     seg_dir = 'av_randlanet_scfnet/results/%s/separate_segments/' % filename
     model = samlidar.SamLidar(ckpt_path="sam_vit_h_4b8939.pth")
