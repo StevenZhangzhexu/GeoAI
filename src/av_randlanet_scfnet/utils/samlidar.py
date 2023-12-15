@@ -232,7 +232,7 @@ class SamLidar:
                 # header = laspy.LasHeader(point_format=3, version="1.3")
                 header = laspy.LasHeader(point_format=3, version="1.2")
                 header.add_extra_dim(laspy.ExtraBytesParams(name="ground", type=np.int8))
-                header.offsets = np.min(points, axis=0)
+                header.offsets = np.min(points[:, :3], axis=0)
                 header.scales = np.array([0.1, 0.1, 0.1])
                 lidar = laspy.LasData(header=header)
                 lidar.xyz = points[:, :3]
@@ -425,7 +425,7 @@ class SamLidar:
         # header = laspy.LasHeader(point_format=3, version="1.3")
         header = laspy.LasHeader(point_format=3, version="1.2")
         header.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
-        header.offsets = np.min(points, axis=0)
+        header.offsets = np.min(points[:, :3], axis=0)
         header.scales = np.array([0.1, 0.1, 0.1])
         lidar = laspy.LasData(header=header)
 
