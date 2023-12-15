@@ -15,7 +15,9 @@ from samgeo.text_sam import LangSAM
 from typing import List, Tuple, Union
 import rasterio
 import laspy
-from segment_lidar.view import TopView, PinholeView
+# from segment_lidar.view import TopView, PinholeView
+from view import TopView, PinholeView
+
 
 class SamLidar:
     class mask:
@@ -130,7 +132,6 @@ class SamLidar:
 
         os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-
     def read(self, path: str, classification: int = None) -> np.ndarray:
         """
         Reads a point cloud from a file and returns it as a NumPy array.
@@ -188,7 +189,6 @@ class SamLidar:
         end = time.time()
         print(f'File reading is completed in {end - start:.2f} seconds. The point cloud contains {points.shape[0]} points.\n')
         return points
-
 
     def csf(self, points: np.ndarray, class_threshold: float = 0.5, cloth_resolution: float = 0.2, iterations: int = 500, slope_smooth: bool = False, csf_path: str = None, exists: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -256,7 +256,6 @@ class SamLidar:
             print(f'File reading is completed. The filtered non-ground cloud contains {non_ground.shape[0]} points.\n')
 
         return cloud, np.asarray(non_ground), np.asarray(ground)
-
 
     def segment(self, points: np.ndarray, view: Union[TopView, PinholeView] = TopView(), image_path: str = 'raster.tif', labels_path: str = 'labeled.tif', image_exists: bool = False, label_exists: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -376,7 +375,6 @@ class SamLidar:
             return segment_ids, segmented_image, image_rgb
         elif view.__class__.__name__ == 'PinholeView':
             return segment_ids, segmented_image, image_rgb, K, pose
-
 
     def write(self, points: np.ndarray, segment_ids: np.ndarray, non_ground: np.ndarray = None, ground: np.ndarray = None, save_path: str = 'segmented.las', ground_path: str = None) -> None:
         """
