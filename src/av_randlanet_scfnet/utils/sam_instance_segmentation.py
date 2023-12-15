@@ -86,8 +86,8 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
 
 def run_sam_instance_segmentation(filename):
-    from segment_lidar import samlidar
-    # import samlidar
+    # from segment_lidar import samlidar
+    import samlidar
     # from segment_lidar import view
 
     print("Running SAM-LiDAR Instance Segmentation for", filename)
