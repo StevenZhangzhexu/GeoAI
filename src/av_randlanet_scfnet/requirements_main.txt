@@ -10,3 +10,5 @@ tensorflow-gpu==1.*
 tensorboard==1.15.*
 laspy[lazrs,laszip]
 pyproj
+
+# cloth-simulation-filter
