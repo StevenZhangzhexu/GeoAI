@@ -459,8 +459,11 @@ class SamLidar:
             # lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
             lidar.segment_id = segment_ids
 
-        lidar.write(save_path)
+        if "segment_id" not in list(lidar.point_format.dimension_names):
+            lidar.add_extra_dim(laspy.ExtraBytesParams(name="segment_id", type=np.int32))
+            lidar.segment_id = segment_ids
 
+        lidar.write(save_path)
         end = time.time()
         print(f'Writing is completed in {end - start:.2f} seconds.\n')
         return None
