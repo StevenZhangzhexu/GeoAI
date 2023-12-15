@@ -12,6 +12,7 @@ sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, ''))
 
 import cpp_wrappers.cpp_subsampling.grid_subsampling as cpp_subsampling
+import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
 
 
 class ConfigOrchardRoad:
@@ -20,9 +21,9 @@ class ConfigOrchardRoad:
     num_points = 40960  # 65536 (RandLA-Net)  # Number of input points
     num_classes = 13  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = False  # True     # Use RGB
-    use_intensity = True  # Use intensity
-    resume = False  # True   # resume from checkpoint
+    use_rgb = True     # Use RGB
+    use_intensity = True   # Use intensity
+    resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
@@ -39,7 +40,7 @@ class ConfigOrchardRoad:
 
     train_sum_dir = 'train_log'
     saving = True
-    saving_path = None
+    saving_path = 'av_randlanet_scfnet/results/'
 
     augment_scale_anisotropic = True
     augment_symmetries = [True, False, False]
@@ -55,8 +56,8 @@ class ConfigToronto3D:
     num_points = 65536  # Number of input points
     num_classes = 8  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = False  # Use RGB
-    use_intensity = False  # Use intensity
+    use_rgb = False # Use RGB
+    use_intensity = False # Use intensity
 
     batch_size = 4  # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
@@ -231,7 +232,6 @@ class DataProcessing:
         :return: neighbor_idx: neighboring points indexes, B*N2*k
         """
 
-        import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
         neighbor_idx = nearest_neighbors.knn_batch(support_pts, query_pts, k, omp=True)
         return neighbor_idx.astype(np.int32)
 
@@ -261,17 +261,6 @@ class DataProcessing:
         np.random.shuffle(indices)
         data_list = data_list[indices]
         return data_list
-
-    @staticmethod
-    def same_shuffl(a, b):
-        # assert len(a) == len(b)
-        # p = np.random.permutation(len(a))
-        # return a[p], b[p]
-
-        assert len(a) == len(b)
-        c = np.arange(len(a))
-        np.random.shuffle(c)
-        return a[c], b[c]
 
     @staticmethod
     def grid_sub_sampling(points, features=None, labels=None, grid_size=0.1, verbose=0):
@@ -326,23 +315,20 @@ class DataProcessing:
     def get_class_weights(dataset_name):
         # pre-calculate the number of points in each category
         num_per_class = []
-        if dataset_name is 'S3DIS':
+        if dataset_name == 'S3DIS':
             num_per_class = np.array([3370714, 2856755, 4919229, 318158, 375640, 478001, 974733,
                                       650464, 791496, 88727, 1284130, 229758, 2272837], dtype=np.int32)
-        elif dataset_name is 'Semantic3D':
+        elif dataset_name == 'Semantic3D':
             num_per_class = np.array([5181602, 5012952, 6830086, 1311528, 10476365, 946982, 334860, 269353],
                                      dtype=np.int32)
-        elif dataset_name is 'SemanticKITTI':
+        elif dataset_name == 'SemanticKITTI':
             num_per_class = np.array([55437630, 320797, 541736, 2578735, 3274484, 552662, 184064, 78858,
                                       240942562, 17294618, 170599734, 6369672, 230413074, 101130274, 476491114,
                                       9833174, 129609852, 4506626, 1168181], dtype=np.int32)
-        elif dataset_name is 'Toronto3D':
-            num_per_class = np.array([35391894, 1449308, 4650919, 18252779, 589856, 743579, 4311631, 356463],
-                                     dtype=np.int32)
-        elif dataset_name is 'OrchardRoad':
-            num_per_class = np.array(
-                [139949, 1637981, 139070, 97416, 6045740, 1926076, 11937, 549852, 64972574, 9352595, 859626, 322478,
-                 20156805], dtype=np.int32)
+        elif dataset_name == 'Toronto3D':
+            num_per_class = np.array([35391894, 1449308, 4650919, 18252779, 589856, 743579, 4311631, 356463], dtype=np.int32)
+        elif dataset_name == 'OrchardRoad':
+            num_per_class = np.array([139949, 1637981, 139070, 97416, 6045740, 1926076, 11937, 549852, 64972574, 9352595, 859626, 322478, 20156805], dtype=np.int32)
 
         weight = num_per_class / float(sum(num_per_class))
         ce_label_weight = 1 / (weight + 0.02)
