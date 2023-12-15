@@ -49,7 +49,7 @@ def draw_line_and_get_points(x1, y1, x2, y2, resolution=100):
         x = x1 + i * dx / resolution
         y = y1 + i * dy / resolution
         points.append((x, y))
-        print([x, y])
+        # print([x, y])
 
     # Return the list of points
     return points
