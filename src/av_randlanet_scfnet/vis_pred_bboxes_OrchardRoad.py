@@ -30,17 +30,13 @@ def get_kitti_bbox_info(file_path):
     # Calculate center point
     center = np.mean(points, axis=0)
 
-    try:
-        # Apply PCA and extract eigenvectors
-        # Compute the covariance matrix
-        cov = np.cov(points, rowvar=False)
+    # Apply PCA and extract eigenvectors
+    # Compute the covariance matrix
+    cov = np.cov(points, rowvar=False)
 
-        # Perform eigenvalue decomposition to get the rotation matrix
-        eigenvalues, eigenvectors = np.linalg.eigh(cov)
-        rot_mat = eigenvectors
-    except:
-        rot_mat = np.identity(3)  # Identity matrix representing no rotation
-        # rot_mat = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    # Perform eigenvalue decomposition to get the rotation matrix
+    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    rot_mat = eigenvectors
 
     # Transform points using the rotation matrix
     rotated_points = np.dot(points, rot_mat)
@@ -84,10 +80,13 @@ def viz_pred_objdet(filename):
 
     items = [pcd]
     for file in os.listdir(directory_path):
-        if file.endswith(".laz") and not file.endswith("_WGS84.laz"):
-            laz_file_path = os.path.join(directory_path, file)
-            bbox = get_kitti_bbox_info(laz_file_path)
-            items.append(bbox)
+        if not file.endswith("_WGS84.laz"):
+            try:
+                laz_file_path = os.path.join(directory_path, file)
+                bbox = get_kitti_bbox_info(laz_file_path)
+                items.append(bbox)
+            except Exception as err:
+                print(err)
 
     # visualization
     o3d.visualization.draw_geometries(items, zoom=zoom, front=front, up=up, lookat=lookat)
