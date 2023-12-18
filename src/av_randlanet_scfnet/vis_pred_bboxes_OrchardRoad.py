@@ -84,7 +84,7 @@ def viz_pred_objdet(filename):
 
     items = [pcd]
     for file in os.listdir(directory_path):
-        if file.endswith(".laz"):
+        if file.endswith(".laz") and not file.endswith("_WGS84.laz"):
             laz_file_path = os.path.join(directory_path, file)
             bbox = get_kitti_bbox_info(laz_file_path)
             items.append(bbox)
