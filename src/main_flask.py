@@ -56,7 +56,7 @@ def result():
             # visualize predictions
             # vis_pred_OrchardRoad.viz_pred(f.filename)
             subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-                            'av_randlanet_scfnet/vis_pred_OrchardRoad.py', f.filename])
+                            'av_randlanet_scfnet/vis_pred_semseg_OrchardRoad.py', f.filename])
 
             print("All finished!")
 

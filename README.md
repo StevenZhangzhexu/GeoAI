@@ -6,8 +6,7 @@ REST API server for serving the GeoAI models in production
 conda create -n randlanet -y python=3.6
 conda activate randlanet
 pip install -r requirements.txt
-cd src/av_randlanet_scfnet/
-pip install -r requirements_main.txt
+pip install -r src/av_randlanet_scfnet/requirements_main.txt
 ```
 
 ```

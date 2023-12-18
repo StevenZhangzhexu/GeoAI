@@ -8,14 +8,14 @@ from os.path import join
 import laspy
 
 
-samlidar_pythonpath = "/home/pc1/miniconda3/envs/samlidar/bin/python"
-sys.path.append(samlidar_pythonpath)
-os.environ["PYTHONPATH"] = samlidar_pythonpath
+open3d_pythonpath = "/home/pc1/miniconda3/envs/open3d/bin/python"
+sys.path.append(open3d_pythonpath)
+os.environ["PYTHONPATH"] = open3d_pythonpath
 
 try:
-    sys.path.index(samlidar_pythonpath)    # Or os.getcwd() for this directory
+    sys.path.index(open3d_pythonpath)    # Or os.getcwd() for this directory
 except ValueError:
-    sys.path.append(samlidar_pythonpath)    # Or os.getcwd() for this directory
+    sys.path.append(open3d_pythonpath)    # Or os.getcwd() for this directory
 
 log = logging.getLogger(__name__)
 
@@ -62,27 +62,6 @@ def prepare_custom_data(pc_names, path):
 def viz_pred_semseg(filename):
     v = ml3d.vis.Visualizer()
     lut = ml3d.vis.LabelLUT()
-    for val in sorted(orchard_labels.keys()):
-        lut.add_label(orchard_labels[val], val)
-    v.set_lut("pred", lut)
-
-    # chosen_folder = 'results/Orchard_0913_labelled_E.laz/predictions/'
-    chosen_folder = f'av_randlanet_scfnet/results/{filename}/predictions/'
-    # pc_names = ["Orchard_0913_labelled_E.laz"]
-    pc_names = [filename]
-    pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
-
-    print("Visualizing predictions...")
-    v.visualize(pcs_with_pred)
-
-
-# --------------------Object Detection--------------------
-
-
-def viz_pred_objdet(filename):
-    v = ml3d.vis.Visualizer()
-    lut = ml3d.vis.LabelLUT()
-    bbox = ml3d.vis.BoundingBox3D()
     for val in sorted(orchard_labels.keys()):
         lut.add_label(orchard_labels[val], val)
     v.set_lut("pred", lut)
