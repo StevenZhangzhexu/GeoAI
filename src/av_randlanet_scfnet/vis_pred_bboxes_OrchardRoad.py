@@ -30,7 +30,7 @@ def get_kitti_bbox_info(file_path):
     # Calculate center point
     center = np.mean(points, axis=0)
 
-    if points.shape[0] < 2:
+    try:
         # Apply PCA and extract eigenvectors
         # Compute the covariance matrix
         cov = np.cov(points, rowvar=False)
@@ -38,7 +38,7 @@ def get_kitti_bbox_info(file_path):
         # Perform eigenvalue decomposition to get the rotation matrix
         eigenvalues, eigenvectors = np.linalg.eigh(cov)
         rot_mat = eigenvectors
-    else:
+    except:
         rot_mat = np.identity(3)  # Identity matrix representing no rotation
         # rot_mat = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
