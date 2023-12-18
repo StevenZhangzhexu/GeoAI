@@ -3,6 +3,7 @@ import sys
 import laspy
 import numpy as np
 import open3d as o3d
+from sklearn.decomposition import PCA
 
 
 def rotate_view(vis):
@@ -29,13 +30,21 @@ def get_kitti_bbox_info(file_path):
     # Calculate center point
     center = np.mean(points, axis=0)
 
-    # Apply PCA and extract eigenvectors
-    # Compute the covariance matrix
-    cov = np.cov(points, rowvar=False)
+    try:
+        # Apply PCA and extract eigenvectors
+        # Compute the covariance matrix
+        cov = np.cov(points, rowvar=False)
 
-    # Perform eigenvalue decomposition to get the rotation matrix
-    eigenvalues, eigenvectors = np.linalg.eigh(cov)
-    rot_mat = eigenvectors
+        # Perform eigenvalue decomposition to get the rotation matrix
+        eigenvalues, eigenvectors = np.linalg.eigh(cov)
+        rot_mat = eigenvectors
+    except:
+        # Apply PCA
+        pca = PCA(n_components=3)
+        pca.fit(points)
+
+        # Get the rotation matrix
+        rot_mat = pca.components_.T
 
     # Transform points using the rotation matrix
     rotated_points = np.dot(points, rot_mat)
