@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 
 def rotate_view(vis):
     ctr = vis.get_view_control()
-    ctr.rotate(10.0, 0.0)
+    ctr.rotate(8.0, 0.0)
     return False
 
 
@@ -50,7 +50,51 @@ def get_kitti_bbox_info(file_path):
     return bbox
 
 
-def viz_pred_objdet(filename):
+def viz_pred_bboxes_by_label(filename, label=""):
+    # Directory containing .laz files
+    directory_path = f'av_randlanet_scfnet/results/{filename}/separate_objects/'
+    main_pcd_path = f'av_randlanet_scfnet/results/{filename}/predictions/{filename}'
+
+    main = laspy.read(main_pcd_path)
+    coords = np.vstack((main.x, main.y, main.z)).T
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(coords)
+
+    # Define a lookat point (you can adjust this based on your specific needs)
+    center = np.mean(coords, axis=0)
+    lookat = [center[0], center[1], center[2] + 5]  # Looking 5 units ahead of the center
+
+    # Define the up vector (perpendicular to front)
+    front = np.asarray(center) - np.asarray(lookat)
+    front /= np.linalg.norm(front)
+    up = np.cross([1, 0, 0], front)
+    up /= np.linalg.norm(up)
+
+    # Set the view parameters
+    zoom = 0.7
+    front = list(front)
+    lookat = list(lookat)
+    up = list(up)
+
+    print(f"zoom={zoom}, front={front}, lookat={lookat}, up={up}")
+
+    items = [pcd]
+    for fname in os.listdir(directory_path):
+        if label in fname and not fname.endswith("_WGS84.laz"):
+            try:
+                laz_file_path = os.path.join(directory_path, fname)
+                bbox = get_kitti_bbox_info(laz_file_path)
+                items.append(bbox)
+            except Exception as err:
+                print(err)
+
+    # visualization
+    # o3d.visualization.draw_geometries(items, zoom=zoom, front=front, up=up, lookat=lookat)
+    o3d.visualization.draw_geometries_with_animation_callback(items, callback_function=rotate_view)
+    # o3d.visualization.draw_geometries_with_animation_callback(items, callback_function=move_forward)
+
+
+def viz_pred_bboxes_all(filename):
     # Directory containing .laz files
     directory_path = f'av_randlanet_scfnet/results/{filename}/separate_objects/'
     main_pcd_path = f'av_randlanet_scfnet/results/{filename}/predictions/{filename}'
@@ -95,4 +139,9 @@ def viz_pred_objdet(filename):
 
 
 if __name__ == '__main__':
-    viz_pred_objdet(sys.argv[1])
+    # viz_pred_bboxes_all(sys.argv[1])
+    viz_pred_bboxes_by_label(sys.argv[1], "Pole")
+    viz_pred_bboxes_by_label(sys.argv[1], "LampPost")
+    viz_pred_bboxes_by_label(sys.argv[1], "Tree")
+    viz_pred_bboxes_by_label(sys.argv[1], "Sign")
+    viz_pred_bboxes_by_label(sys.argv[1], "SolarPanel")
