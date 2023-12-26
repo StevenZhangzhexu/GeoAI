@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 
 def rotate_view(vis):
     ctr = vis.get_view_control()
-    ctr.rotate(8.0, 0.0)
+    ctr.rotate(10.0, 0.0)
     return False
 
 
