@@ -89,8 +89,8 @@ def viz_pred_bboxes_by_label(filename, label=""):
                 print(err)
 
     # visualization
-    o3d.visualization.draw_geometries(items, zoom=zoom, front=front, up=up, lookat=lookat)
-    # o3d.visualization.draw_geometries_with_animation_callback(items, callback_function=rotate_view)
+    # o3d.visualization.draw_geometries(items, zoom=zoom, front=front, up=up, lookat=lookat)
+    o3d.visualization.draw_geometries_with_animation_callback(items, callback_function=rotate_view)
     # o3d.visualization.draw_geometries_with_animation_callback(items, callback_function=move_forward)
 
 
