@@ -16,6 +16,23 @@ except ValueError:
     sys.path.append(samlidar_pythonpath)    # Or os.getcwd() for this directory
 
 
+label_to_min_points = {
+                    0: 1000,
+                    1: 5000,
+                    2: 5000,
+                    3: 3000,
+                    4: 4000,
+                    5: 3000,
+                    6: 2000,
+                    7: 5000,
+                    8: 5000,
+                    9: 3000,
+                    10: 3000,
+                    11: 4000,
+                    12: 10000
+                }
+
+
 def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_id):
     segment_points = las_reader.points[las_reader.segment_id == object_id]
     points = np.vstack(
@@ -50,35 +67,39 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
 
     object_coords = []
     seg_name = segment_file[:-4].split("/")[-1]
+    label_id = int(seg_name.split("_")[1])
+    label_min_points = label_to_min_points[label_id]
 
     # Iterate over each segment ID and create a separate file for each segment
     i = 0
     for obj_id in inst_ids:
-        i += 1
         try:
             # Copy the points from the input file that belong to the current segment
             segment_points = inFile.points[inFile.segment_id == obj_id]
 
-            # Extract the coordinates from the segment_points array
-            coordinates = np.vstack(
-                (segment_points['x'], segment_points['y'], segment_points['z'])).T
-            print(len(coordinates))
+            # check if its possibly a full esteemed object
+            if len(segment_points) > label_min_points:
+                # Extract the coordinates from the segment_points array
+                coordinates = np.vstack(
+                    (segment_points['x'], segment_points['y'], segment_points['z'])).T
+                print(len(coordinates))
 
-            # Save the point cloud as a .laz file
-            output_filepath = os.path.join(
-                output_dir, f"{seg_name}_object_{obj_id}.laz")
-            save_separate_laz_point_cloud_objects(
-                output_filepath, inFile, obj_id)
-            calc_coords = helper_las.convert_and_save_wgs84(
-                output_filepath, coordinates)
-            object_coords.append({
-                "id": seg_name + "_" + str(i),
-                # "coords": bc_coord
-                "start": calc_coords[0],
-                "end": calc_coords[1],
-                "center": calc_coords[2],
-                "orientation": calc_coords[3]
-            })
+                # Save the point cloud as a .laz file
+                output_filepath = os.path.join(
+                    output_dir, f"{seg_name}_object_{obj_id}.laz")
+                save_separate_laz_point_cloud_objects(
+                    output_filepath, inFile, obj_id)
+                calc_coords = helper_las.convert_and_save_wgs84(
+                    output_filepath, coordinates)
+                object_coords.append({
+                    "id": seg_name + "_" + str(i),
+                    # "coords": bc_coord
+                    "start": calc_coords[0],
+                    "end": calc_coords[1],
+                    "center": calc_coords[2],
+                    "orientation": calc_coords[3]
+                })
+                i += 1
         except Exception as err:
             print(err)
             traceback.print_exc()
