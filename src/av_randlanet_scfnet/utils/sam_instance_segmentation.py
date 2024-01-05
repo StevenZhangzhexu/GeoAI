@@ -31,6 +31,8 @@ label_to_min_points = {
                     11: 4000,
                     12: 10000
                 }
+labels_with_elongations = [5, 6, 10, 11, 12]
+labels_with_orientations = [5, 6, 10]
 
 
 def save_separate_laz_point_cloud_objects(output_file_path, las_reader, object_id):
@@ -90,7 +92,7 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
                 save_separate_laz_point_cloud_objects(
                     output_filepath, inFile, obj_id)
                 calc_coords = helper_las.convert_and_save_wgs84(
-                    output_filepath, coordinates)
+                    output_filepath, coordinates, label_id)
                 object_coords.append({
                     "id": seg_name + "_" + str(i),
                     # "coords": bc_coord

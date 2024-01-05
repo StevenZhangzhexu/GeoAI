@@ -3,6 +3,10 @@ import json
 import numpy as np
 
 
+labels_with_elongations = [5, 6, 10, 11, 12]
+labels_with_orientations = [5, 6, 10]
+
+
 def get_base_center_coord(coords):
     # Assuming both clouds are in the same coordinate system (e.g., meters),
     # calculate the distance between centroids of both point clouds
@@ -107,16 +111,46 @@ def get_center_base_coord(coordinates):
     return base_center_coord
 
 
-def get_start_end_center_base_coords(coordinates):
+def get_base_center_for_tree_lamppost(object_points):
+    # Find the highest point (top)
+    highest_point = object_points[np.argmax(object_points[:, 2])]
+
+    # Estimate the base center by considering points at the lowest height
+    lowest_height = np.percentile(object_points[:, 2], 5)  # Assuming 5% height from the lowest
+    base_points = object_points[object_points[:, 2] < lowest_height]
+
+    # Find the point with the lowest z-coordinate (assuming z represents height)
+    # base_point = object_points[np.argmin(object_points[:, 2])]
+
+    # Calculate the center of these base points
+    center_xy = np.mean(base_points[:, :2], axis=0)  # Consider only X and Y coordinates
+    # base_center = {'x': base_center_xy[0], 'y': base_center_xy[1], 'z': base_point[2]}
+
+    print(f"Highest point: {highest_point}")
+    print(f"Estimated base center: {center_xy}")
+
+    return center_xy
+
+
+def get_start_end_center_base_coords(coordinates, label_id):
     # Find the point with the lowest z-coordinate (assuming z represents height)
     base_point = coordinates[np.argmin(coordinates[:, 2])]
     start_coordinate = np.min(coordinates, axis=0)
     end_coordinate = np.max(coordinates, axis=0)
-    center_coordinate = np.mean(coordinates, axis=0)
 
-    bc = get_base_center_coord(coordinates)
-    cc = get_closest_road_center(bc)
-    orientations = get_axes_orientation_by_unit_vector(bc, cc)
+    # check if with elongations
+    if label_id in labels_with_elongations:
+        center_coordinate = get_base_center_for_tree_lamppost(coordinates)
+    else:
+        center_coordinate = np.mean(coordinates, axis=0)
+    print(center_coordinate)
+
+    if label_id in labels_with_orientations:
+        bc = get_base_center_coord(coordinates)
+        cc = get_closest_road_center(bc)
+        orientations = get_axes_orientation_by_unit_vector(bc, cc)
+    else:
+        orientations = [0, 0, 0]
 
     # base_center_coord = {
     #         'x': center_coordinate[0],
