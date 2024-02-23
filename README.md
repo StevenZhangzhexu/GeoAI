@@ -22,7 +22,7 @@ pip install git+https://github.com/IDEA-Research/GroundingDINO.git
 ```
 conda create -n open3d -y python=3.10
 conda activate open3d
-pip install torch==1.13.* torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
 pip install open3d tensorboard laspy[lazrs,laszip]
 ```
 
