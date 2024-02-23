@@ -7,6 +7,8 @@ conda create -n randlanet -y python=3.6
 conda activate randlanet
 pip install -r requirements.txt
 pip install -r src/av_randlanet_scfnet/requirements_main.txt
+cd src/av_randlanet_scfnet/
+sh compile_op.sh
 ```
 
 ```
