@@ -3,6 +3,7 @@
 # nvidia cuda driver and toolkit
 
 conda create -n randlanet -y python=3.6
+conda init
 conda activate randlanet
 
 pip install -r requirements.txt
