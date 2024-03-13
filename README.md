@@ -32,3 +32,8 @@ Port forwarding: `ssh -R 80:localhost:8080 serveo.net`
 
 Production ngrok file server: `ngrok http "file:///home/pc1/shared"`
 
+## Usage of updated GeoAI Server (U-Next)
+```
+python main_flask1.py
+```
+
