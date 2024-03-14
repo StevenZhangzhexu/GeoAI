@@ -51,19 +51,16 @@ def result():
                     chosen_folder = main_Unext_infer.predict(filepath=file_path,uploadpath = upload_path, id=4)
 
             # Post-process
-            # separate_predicted_objects.separate_and_segment_point_clouds(f.filename)
-            # helper_las.copy_predictions()
-
-            # Run other scripts using subprocess if needed
+            # separate_predicted_objects 
             if option != 'model0':
                 subprocess.run(['/home/steven/miniconda3/envs/vis/bin/python', 
-                                'UNext/vis_pred.py', f.filename])  
-            # chosen_folder = 'UNext/results/Pred_2024-03-14_08-34-07'
-            pkl_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
-            with open(pkl_path, 'rb') as file:
-                bbox_dict = pickle.load(file)
-            shp_folder = chosen_folder +'/shp'   
+                                'UNext/vis_pred.py', f.filename])                       
+            # Convert objects to shp file
             if 'convertButton' in request.form:
+                pkl_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
+                with open(pkl_path, 'rb') as file:
+                    bbox_dict = pickle.load(file)
+                shp_folder = chosen_folder +'/shp'  
                 convert(bbox_dict, folder=shp_folder)
                 
             print("All finished!")
