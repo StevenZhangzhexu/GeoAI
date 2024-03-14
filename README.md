@@ -37,7 +37,7 @@ Production ngrok file server: `ngrok http "file:///home/pc1/shared"`
 conda create -n server -y python=3.6
 conda activate server
 pip install -r requirements.txt
-pip install -r src/av_randlanet_scfnet/requirements_main.txt
+pip install -r src/UNext/requirements_main.txt
 
 pip install laspy[laszip] # with LAZ support via LASzip
 # Or
