@@ -47,9 +47,10 @@ cd src/UNext/
 sh compile_op.sh
 ```
 
-## Usage of updated GeoAI Server (U-Next)
+## Usage of updated GeoAI Server (U-Next & Conversion)
 ```
 cd src
 python main_flask1.py
 ```
-
+without conversion : click predict button
+with conversion : click convert button
