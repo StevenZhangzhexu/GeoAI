@@ -13,9 +13,9 @@ import time, pickle, argparse, glob, os
 
 
 class OrchardRoad:
-    def __init__(self, filepath):
+    def __init__(self, filepath, uploadpath):
         self.name = 'OrchardRoad'
-        self.path = 'av_randlanet_scfnet/data/orchard_road'
+        self.path = uploadpath
         self.label_to_names = {
                         0: 'Bollard',
                         1: 'Building',
@@ -275,14 +275,14 @@ class OrchardRoad:
         self.test_init_op = iter.make_initializer(self.batch_test_data)
 
 
-def predict(filepath, id=1):
+def predict(filepath,uploadpath, id=1):
     print("Starting prediction...")
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-    dataset = OrchardRoad(filepath)
+    dataset = OrchardRoad(filepath, uploadpath)
     dataset.init_input_pipeline()
 
     file_name = filepath.split('/')[-1]
@@ -299,3 +299,5 @@ def predict(filepath, id=1):
                          restore_snap=chosen_snap)
     tester.infer(model, dataset, id=id)
     print("Prediction finished!")
+
+    return tester.chosen_folder_path() 

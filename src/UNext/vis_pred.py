@@ -7,6 +7,7 @@ import numpy as np
 from os.path import join
 import laspy
 from bbox import bbox_pcd
+import pickle
 
 
 open3d_pythonpath = "/home/steven/miniconda3/envs/vis/bin/python"
@@ -83,7 +84,10 @@ def viz_pred_semseg(filename):
 
     print("Visualizing Bounding Boxes...")
     path = os.path.join(chosen_folder,pc_names[0])
-    bbox_pcd(path)
+    bbox_dict = bbox_pcd(path)
+    file_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
+    with open(file_path, 'wb') as file:
+        pickle.dump(bbox_dict, file)
 
 if __name__ == "__main__":
 

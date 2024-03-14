@@ -60,8 +60,10 @@ class ModelTester:
             # Create the directory if it doesn't exist
             os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
         self.log_out = open(log_file_path, 'a')
-        
 
+    def chosen_folder_path(self):
+        return self.saving_path
+        
     def infer(self, model, dataset, num_votes=100, id=0):
         filename = self.filename
 
