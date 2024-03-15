@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
-
-from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
+import laspy
+import pyvista as pv
 
 
 # Global variable to store the selected file path
@@ -15,7 +16,6 @@ file_path = None
 def create_progressbar(root, message):
     progressbar = ttk.Progressbar(root, orient="horizontal", mode="indeterminate")
     progressbar.pack(pady=10)
-    progressbar.start()
     label = tk.Label(root, text=message)
     label.pack()
     return progressbar
@@ -24,12 +24,31 @@ def create_progressbar(root, message):
 # Function to open file dialog and load selected point cloud
 def open_file_dialog():
     global file_path
-    file_types = [("LAS Files", "*.las"), ("LAZ Files", "*.laz"), ("PCD Files", "*.pcd")]
+    file_types = [("LAZ Files", "*.laz"), ("LAS Files", "*.las")]
     file_path = filedialog.askopenfilename(filetypes=file_types)
     if file_path:
         print("Selected file:", file_path)
-        # (Replace with actual point cloud loading and visualization code)
-        print("Loading and visualizing point cloud...")
+        visualize_point_cloud(file_path)
+
+
+# Function to visualize point cloud
+def visualize_point_cloud(file_path):
+    # Load point cloud data using laspy
+    las_data = laspy.read(file_path)
+    points = las_data.points
+
+    # Extract x, y, z coordinates
+    x = points[:, 0]
+    y = points[:, 1]
+    z = points[:, 2]
+
+    # Create a PyVista point cloud
+    cloud = pv.PolyData(points)
+
+    # Plot the point cloud using PyVista
+    plotter = pv.Plotter()
+    plotter.add_points(cloud, color="blue", point_size=2)
+    plotter.show()
 
 
 # Function to perform point cloud segmentation
@@ -41,24 +60,7 @@ def perform_segmentation():
         # (Replace with actual segmentation code)
         time.sleep(5)  # Simulate segmentation process (5 seconds)
 
-        # pre-process
-        data_prepare_orchard.prepare_data(file_path)
-
-        # predict
-        predict_OrchardRoad.predict(filepath=file_path)
-
-        # post-process
-        filename = file_path.split("/")[-1]
-        # separate_predicted_objects.separate_segmented_point_clouds(filename)
-        # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
-        # separate_predicted_objects.separate_and_segment_point_clouds(filename)
-
-        segmented_point_cloud_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
-
         progressbar.destroy()  # Remove progress bar after segmentation
-
-        # (Replace with actual visualization of segmented point cloud)
-        print("Visualizing segmented point cloud:", segmented_point_cloud_path)
 
 
 # Create main window
@@ -66,7 +68,7 @@ root = tk.Tk()
 root.title("Point Cloud Segmentation")
 
 # Set window size
-root.geometry("500x200")  # Width x Height
+root.geometry("800x600")  # Width x Height
 
 # Create frame for buttons
 button_frame = tk.Frame(root)
