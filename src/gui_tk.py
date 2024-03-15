@@ -60,6 +60,7 @@ def perform_segmentation():
         # (Replace with actual visualization of segmented point cloud)
         print("Visualizing segmented point cloud:", segmented_point_cloud_path)
 
+
 # Create main window
 root = tk.Tk()
 root.title("Point Cloud Segmentation")
