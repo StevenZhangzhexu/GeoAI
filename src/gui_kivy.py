@@ -70,7 +70,8 @@ class FileChooserApp(App):
     def segment_selected_file(self, instance, selection):
         if selection:
             # Get the selected file path
-            file_path = selection
+            file_path = selection[0]
+            print(file_path)
 
             # Update the label text with the selected file path
             self.file_path_label.text = "Selected file: " + file_path
