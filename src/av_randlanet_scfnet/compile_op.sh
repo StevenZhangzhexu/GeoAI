@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cd utils/nearest_neighbors || exit
 python setup.py install --home="."

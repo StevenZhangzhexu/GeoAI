@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # randlanet installation
 # manually install the below commented stuff first
 # nvidia cuda driver and toolkit

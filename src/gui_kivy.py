@@ -13,8 +13,21 @@ from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_o
 # Placeholder function to segment point cloud (replace with actual segmentation code)
 def segment_point_cloud(file_path):
     time.sleep(5)  # Simulate segmentation process (5 seconds)
-    segmented_point_cloud = file_path + "_segmented"  # Placeholder for segmented point cloud file path
-    return segmented_point_cloud
+    # segmented_point_cloud = file_path + "_segmented"  # Placeholder for segmented point cloud file path
+
+    # pre-process
+    data_prepare_orchard.prepare_data(file_path)
+
+    # predict
+    segmented_point_cloud_file_path = predict_OrchardRoad.predict(filepath=file_path)
+
+    # post-process
+    #filename = file_path.split("/")[-1]
+    # separate_predicted_objects.separate_segmented_point_clouds(filename)
+    # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
+    #separate_predicted_objects.separate_and_segment_point_clouds(filename)
+
+    return segmented_point_cloud_file_path
 
 
 # Placeholder function to visualize segmented point cloud (replace with actual visualization code)

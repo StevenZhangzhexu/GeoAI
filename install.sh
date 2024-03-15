@@ -1,3 +1,5 @@
+#!/bin/bash
+
 conda create -n geoai -y python=3.6
 conda init
 conda activate geoai

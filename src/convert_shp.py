@@ -4,6 +4,7 @@ import geopandas as gpd
 from shapely.geometry import Point, Polygon
 import alphashape as ash
 
+
 def convert_to_shapefile_cent(xyz_list, output_folder, output_name, crs = 'EPSG:3414'): # default crs for svy21
     seperate_xyz = list(map(list, zip(*xyz_list)))
     geometry = [Point(xyz) for xyz in xyz_list]
@@ -81,6 +82,3 @@ def convert(bbox_dict, folder):
             if not centroids:
                 continue  # some pred points exist but could not form an object, skip
             convert_to_shapefile_cent(centroids, folder, name_dict[label], crs = 'EPSG:3414')
-
-
-
