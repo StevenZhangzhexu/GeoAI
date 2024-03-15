@@ -75,14 +75,14 @@ class FileChooserApp(App):
             # Update the label text with the selected file path
             self.file_path_label.text = "Selected file: " + file_path
 
+            # Close the file chooser popup
+            self.popup.dismiss()
+
             # Perform point cloud segmentation
             segmented_point_cloud_path = segment_point_cloud(file_path)
 
             # Visualize segmented point cloud
             visualize_segmented_point_cloud(segmented_point_cloud_path)
-
-            # Close the file chooser popup
-            self.popup.dismiss()
         else:
             # No file selected, reset label text
             self.file_path_label.text = "No file selected"
