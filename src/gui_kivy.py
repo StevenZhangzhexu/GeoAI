@@ -19,13 +19,15 @@ def segment_point_cloud(file_path):
     data_prepare_orchard.prepare_data(file_path)
 
     # predict
-    segmented_point_cloud_file_path = predict_OrchardRoad.predict(filepath=file_path)
+    predict_OrchardRoad.predict(filepath=file_path)
 
     # post-process
-    #filename = file_path.split("/")[-1]
+    filename = file_path.split("/")[-1]
     # separate_predicted_objects.separate_segmented_point_clouds(filename)
     # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
     #separate_predicted_objects.separate_and_segment_point_clouds(filename)
+
+    segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
 
     return segmented_point_cloud_file_path
 

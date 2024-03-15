@@ -301,3 +301,4 @@ def predict(filepath):
                          restore_snap=chosen_snap)
     tester.infer(model, dataset, file_name)
     print("Prediction finished!")
+
