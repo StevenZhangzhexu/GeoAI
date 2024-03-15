@@ -65,6 +65,9 @@ def perform_segmentation():
 root = tk.Tk()
 root.title("Point Cloud Segmentation")
 
+# Set window size
+root.geometry("500x200")  # Width x Height
+
 # Create frame for buttons
 button_frame = tk.Frame(root)
 button_frame.pack(pady=20)
