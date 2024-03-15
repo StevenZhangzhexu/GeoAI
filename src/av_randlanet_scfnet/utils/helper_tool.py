@@ -12,7 +12,11 @@ sys.path.append(BASE_DIR)
 sys.path.append(os.path.join(BASE_DIR, ''))
 
 import cpp_wrappers.cpp_subsampling.grid_subsampling as cpp_subsampling
-import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
+
+try:
+    import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
+except:
+    import av_randlanet_scfnet.utils.nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
 
 
 class ConfigOrchardRoad:
