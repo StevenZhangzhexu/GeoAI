@@ -10,3 +10,6 @@ open3d
 pyproj
 segment-lidar
 kivy
+matplotlib
+pyvista
+pptk

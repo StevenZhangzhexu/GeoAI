@@ -1,15 +1,44 @@
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 import laspy
-import pyvista as pv
+import open3d as o3d
+import numpy as np
+from av_randlanet_scfnet import predict_OrchardRoad
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
 
 
 # Global variable to store the selected file path
 file_path = None
+
+
+# Define a colormap for labels
+def label_to_color(label):
+    # Define your colormap here
+    colormap = [
+        # [0, 0, 0],     # Label 0 (background) as black
+        [255, 0, 0],   # Label 1 as red
+        [0, 255, 0],   # Label 2 as green
+        [0, 0, 255],   # Label 3 as blue
+        [255, 0, 255],
+        [255, 255, 0],
+        [0, 255, 255],
+        [0, 128, 255],
+        [255, 128, 0],
+        [0, 255, 128],
+        [0, 128, 0],
+        [0, 0, 128],
+        [128, 0, 0],
+        [128, 128, 0],
+        [128, 0, 128],
+        [128, 128, 0],
+        # Add more colors for additional labels as needed
+    ]
+    if label < len(colormap):
+        return colormap[label]
+    else:
+        return [255, 255, 255]  # Default to white for unknown labels
 
 
 # Function to create a progress bar with message
@@ -31,24 +60,29 @@ def open_file_dialog():
         visualize_point_cloud(file_path)
 
 
+def o3d_viz(cloud, annotated=False):
+    points = np.vstack((cloud.x, cloud.y, cloud.z)).T
+
+    # Create an Open3D PointCloud object with colors
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    if annotated:
+        labels = cloud.label
+        print(np.unique(labels))
+        labels = cloud.classification
+        print(np.unique(cloud.classification))
+        colors = np.array([label_to_color(label) for label in labels])  # Map labels to colors
+        pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)  # Normalize colors to [0, 1]
+
+    # Visualize the merged point cloud with colors
+    o3d.visualization.draw_geometries([pcd])
+
+
 # Function to visualize point cloud
 def visualize_point_cloud(file_path):
     # Load point cloud data using laspy
     las_data = laspy.read(file_path)
-    points = las_data.points
-
-    # Extract x, y, z coordinates
-    x = points[:, 0]
-    y = points[:, 1]
-    z = points[:, 2]
-
-    # Create a PyVista point cloud
-    cloud = pv.PolyData(points)
-
-    # Plot the point cloud using PyVista
-    plotter = pv.Plotter()
-    plotter.add_points(cloud, color="blue", point_size=2)
-    plotter.show()
+    o3d_viz(las_data)
 
 
 # Function to perform point cloud segmentation
@@ -60,7 +94,24 @@ def perform_segmentation():
         # (Replace with actual segmentation code)
         time.sleep(5)  # Simulate segmentation process (5 seconds)
 
+        # pre-process
+        data_prepare_orchard.prepare_data(file_path)
+
+        # predict
+        predict_OrchardRoad.predict(filepath=file_path)
+
+        # post-process
+        filename = file_path.split("/")[-1]
+        # separate_predicted_objects.separate_segmented_point_clouds(filename)
+        # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
+        #separate_predicted_objects.separate_and_segment_point_clouds(filename)
+
+        segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
+
         progressbar.destroy()  # Remove progress bar after segmentation
+
+        # vis results
+        visualize_point_cloud(segmented_point_cloud_file_path)
 
 
 # Create main window
