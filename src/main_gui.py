@@ -5,8 +5,8 @@ import time
 import laspy
 import open3d as o3d
 import numpy as np
-from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
+from av_randlanet_scfnet import predict_OrchardRoad, vis_pred_semseg_OrchardRoad
+from av_randlanet_scfnet.utils import data_prepare_orchard, sam_instance_segmentation
 
 
 # Global variable to store the selected file path
@@ -48,6 +48,13 @@ def create_progressbar(root, message):
     label = tk.Label(root, text=message)
     label.pack()
     return progressbar
+
+
+def update_progress(progressbar, progress):
+    # Update progress bar (assuming linear progress)
+    # progress = int((i / total_steps) * 100)
+    progressbar['value'] = progress
+    progressbar.update()  # This is crucial to display the updated progress
 
 
 # Function to open file dialog and load selected point cloud
@@ -93,22 +100,29 @@ def perform_segmentation():
 
         # pre-process
         data_prepare_orchard.prepare_data(file_path)
+        update_progress(progressbar, 20)
 
         # predict
         predict_OrchardRoad.predict(filepath=file_path)
+        update_progress(progressbar, 50)
 
         # post-process
         filename = file_path.split("/")[-1]
-        # separate_predicted_objects.separate_segmented_point_clouds(filename)
-        # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
-        # separate_predicted_objects.separate_and_segment_point_clouds(filename)
-
         segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
-
-        progressbar.destroy()  # Remove progress bar after segmentation
 
         # vis results
         visualize_point_cloud(segmented_point_cloud_file_path, annotated=True)
+        update_progress(progressbar, 60)
+
+        # instance segmentation
+        sam_instance_segmentation.run_sam_instance_segmentation(filename)
+        update_progress(progressbar, 90)
+
+        vis_pred_semseg_OrchardRoad.viz_pred_semseg(filename)
+        update_progress(progressbar, 100)
+
+        time.sleep(5)  # Simulate segmentation process (5 seconds)
+        progressbar.destroy()  # Remove progress bar after segmentation
 
 
 # Create main window

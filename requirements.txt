@@ -13,3 +13,8 @@ kivy
 matplotlib
 pyvista
 pptk
+torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+segment-lidar open3d tensorboard
+git+https://github.com/IDEA-Research/GroundingDINO.git
+laspy[lazrs,laszip]
+open3d
