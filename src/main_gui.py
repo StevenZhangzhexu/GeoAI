@@ -60,18 +60,18 @@ def open_file_dialog():
         visualize_point_cloud(file_path)
 
 
-def o3d_viz(cloud, annotated=False):
+def o3d_viz(cloud, predicted=False):
     points = np.vstack((cloud.x, cloud.y, cloud.z)).T
 
     # Create an Open3D PointCloud object with colors
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
-    if annotated:
-        labels = cloud.label
-        print(np.unique(labels))
-        labels = cloud.classification
+    if predicted:
+        predictions = cloud.pred
+        print(np.unique(predictions))
+        predictions = cloud.classification
         print(np.unique(cloud.classification))
-        colors = np.array([label_to_color(label) for label in labels])  # Map labels to colors
+        colors = np.array([label_to_color(label) for label in predictions])  # Map labels to colors
         pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)  # Normalize colors to [0, 1]
 
     # Visualize the merged point cloud with colors
@@ -82,7 +82,7 @@ def o3d_viz(cloud, annotated=False):
 def visualize_point_cloud(file_path, annotated=False):
     # Load point cloud data using laspy
     las_data = laspy.read(file_path)
-    o3d_viz(las_data, annotated=annotated)
+    o3d_viz(las_data, predicted=annotated)
 
 
 # Function to perform point cloud segmentation
