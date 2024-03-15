@@ -43,7 +43,7 @@ def label_to_color(label):
 
 # Function to create a progress bar with message
 def create_progressbar(root, message):
-    progressbar = ttk.Progressbar(root, orient="horizontal", mode="indeterminate")
+    progressbar = ttk.Progressbar(root, orient="horizontal", mode="determinate")
     progressbar.pack(pady=10)
     label = tk.Label(root, text=message)
     label.pack()
@@ -68,9 +68,6 @@ def o3d_viz(cloud, predicted=False):
     pcd.points = o3d.utility.Vector3dVector(points)
     if predicted:
         predictions = cloud.pred
-        print(np.unique(predictions))
-        predictions = cloud.classification
-        print(np.unique(cloud.classification))
         colors = np.array([label_to_color(label) for label in predictions])  # Map labels to colors
         pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)  # Normalize colors to [0, 1]
 
@@ -104,7 +101,7 @@ def perform_segmentation():
         filename = file_path.split("/")[-1]
         # separate_predicted_objects.separate_segmented_point_clouds(filename)
         # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
-        #separate_predicted_objects.separate_and_segment_point_clouds(filename)
+        # separate_predicted_objects.separate_and_segment_point_clouds(filename)
 
         segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
 
