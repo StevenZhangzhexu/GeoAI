@@ -85,5 +85,6 @@ class FileChooserApp(App):
             # No file selected, reset label text
             self.file_path_label.text = "No file selected"
 
+
 if __name__ == "__main__":
     FileChooserApp().run()
