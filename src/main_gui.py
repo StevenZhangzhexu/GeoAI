@@ -79,10 +79,10 @@ def o3d_viz(cloud, annotated=False):
 
 
 # Function to visualize point cloud
-def visualize_point_cloud(file_path):
+def visualize_point_cloud(file_path, annotated=False):
     # Load point cloud data using laspy
     las_data = laspy.read(file_path)
-    o3d_viz(las_data)
+    o3d_viz(las_data, annotated=annotated)
 
 
 # Function to perform point cloud segmentation
@@ -111,7 +111,7 @@ def perform_segmentation():
         progressbar.destroy()  # Remove progress bar after segmentation
 
         # vis results
-        visualize_point_cloud(segmented_point_cloud_file_path)
+        visualize_point_cloud(segmented_point_cloud_file_path, annotated=True)
 
 
 # Create main window
