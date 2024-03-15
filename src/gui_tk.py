@@ -3,6 +3,10 @@ from tkinter import filedialog
 from tkinter import ttk
 import time
 
+from av_randlanet_scfnet import predict_OrchardRoad
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
+
+
 # Global variable to store the selected file path
 file_path = None
 
@@ -36,7 +40,20 @@ def perform_segmentation():
 
         # (Replace with actual segmentation code)
         time.sleep(5)  # Simulate segmentation process (5 seconds)
-        segmented_point_cloud_path = file_path + "_segmented"
+
+        # pre-process
+        data_prepare_orchard.prepare_data(file_path)
+
+        # predict
+        predict_OrchardRoad.predict(filepath=file_path)
+
+        # post-process
+        filename = file_path.split("/")[-1]
+        # separate_predicted_objects.separate_segmented_point_clouds(filename)
+        # separate_predicted_objects.separate_and_cluster_point_clouds(filename)
+        # separate_predicted_objects.separate_and_segment_point_clouds(filename)
+
+        segmented_point_cloud_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
 
         progressbar.destroy()  # Remove progress bar after segmentation
 
