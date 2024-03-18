@@ -118,7 +118,7 @@ def perform_segmentation():
         sam_instance_segmentation.run_sam_instance_segmentation(filename)
         update_progress(progressbar, 90)
 
-        vis_pred_semseg_OrchardRoad.viz_pred_semseg(filename)
+        # vis_pred_semseg_OrchardRoad.viz_pred_semseg(filename)
         update_progress(progressbar, 100)
 
         time.sleep(5)  # Simulate segmentation process (5 seconds)
