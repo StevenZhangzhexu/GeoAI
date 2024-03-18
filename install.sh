@@ -8,5 +8,5 @@ pip install -r requirements.txt
 sudo snap install ngrok
 
 # randlanet
-pip av_randlanet_scfnet/install -r requirements.txt
+pip av_randlanet_scfnet/install -r requirements_main.txt
 sh av_randlanet_scfnet/compile_op.sh
