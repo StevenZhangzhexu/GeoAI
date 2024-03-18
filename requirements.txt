@@ -22,3 +22,4 @@ tensorboard
 git+https://github.com/IDEA-Research/GroundingDINO.git
 laspy[lazrs,laszip]
 open3d
+cloth-simulation-filter
