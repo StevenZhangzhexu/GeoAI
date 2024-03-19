@@ -7,3 +7,5 @@ cd ../../
 cd utils/cpp_wrappers || exit
 sh compile_wrappers.sh
 cd ../../../
+
+$SHELL
