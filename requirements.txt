@@ -1,18 +1,9 @@
-fastapi
-uvicorn
-python-multipart
-flask
-waitress
-# laspy[lazrs,laszip]
 laspy
 laszip
-open3d
-pyproj
-segment-lidar
-kivy
-matplotlib
-pyvista
-pptk
+Cython
+scikit-learn
+pandas
+
 torch --index-url https://download.pytorch.org/whl/cu118
 torchvision --index-url https://download.pytorch.org/whl/cu118
 torchaudio --index-url https://download.pytorch.org/whl/cu118
@@ -21,5 +12,16 @@ open3d
 tensorboard
 git+https://github.com/IDEA-Research/GroundingDINO.git
 laspy[lazrs,laszip]
-open3d
 cloth-simulation-filter
+
+fastapi
+uvicorn
+python-multipart
+flask
+waitress
+pyproj
+
+matplotlib
+pyvista
+pptk
+kivy
