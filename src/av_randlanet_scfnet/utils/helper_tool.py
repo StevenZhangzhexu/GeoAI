@@ -44,8 +44,8 @@ class ConfigOrchardRoad:
 
     train_sum_dir = 'train_log'
     saving = True
-    # saving_path = 'av_randlanet_scfnet/results/'
-    saving_path = 'av_randlanet_scfnet' + '\\' + 'results'
+    saving_path = 'av_randlanet_scfnet/results/'
+    # saving_path = 'av_randlanet_scfnet' + '\\' + 'results'
 
     augment_scale_anisotropic = True
     augment_symmetries = [True, False, False]

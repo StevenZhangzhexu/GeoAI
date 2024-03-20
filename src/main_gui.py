@@ -108,10 +108,10 @@ def perform_segmentation():
         update_progress(progressbar, 50)
 
         # post-process
-        # filename = file_path.split("/")[-1]
-        filename = file_path.split("\\")[-1]
-        # segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
-        segmented_point_cloud_file_path = "av_randlanet_scfnet\\results\\" + filename + "\predictions\\" + filename
+        filename = file_path.split("/")[-1]
+        # filename = file_path.split("\\")[-1]
+        segmented_point_cloud_file_path = "av_randlanet_scfnet/results/" + filename + "/predictions/" + filename
+        # segmented_point_cloud_file_path = "av_randlanet_scfnet\\results\\" + filename + "\predictions\\" + filename
 
         # vis results
         visualize_point_cloud(segmented_point_cloud_file_path, annotated=True)
