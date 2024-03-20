@@ -18,7 +18,8 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 class OrchardRoad:
     def __init__(self, filepath):
         self.name = 'OrchardRoad'
-        self.path = 'av_randlanet_scfnet/data/orchard_road'
+        # self.path = 'av_randlanet_scfnet/data/orchard_road'
+        self.path = 'av_randlanet_scfnet\data\orchard_road'
         self.label_to_names = {
             0: 'Bollard',
             1: 'Building',
@@ -43,7 +44,8 @@ class OrchardRoad:
         self.test_pc_folder = join(self.path, 'test_inputs')
 
         # Initial training-validation-testing files
-        self.test_inputs = [filepath.split("/")[-1]]
+        # self.test_inputs = [filepath.split("/")[-1]]
+        self.test_inputs = [filepath.split("\\")[-1]]
         self.test_files = [filepath]
 
         # Initiate containers
@@ -62,7 +64,8 @@ class OrchardRoad:
         files = self.test_files
 
         for i, file_path in enumerate(files):
-            cloud_name = file_path.split('/')[-1][:-4]
+            # cloud_name = file_path.split('/')[-1][:-4]
+            cloud_name = file_path.split('\\')[-1][:-4]
             print('Load_pc_' + str(i) + ': ' + cloud_name)
             cloud_split = 'predict'
 
@@ -286,9 +289,11 @@ def predict(filepath):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     dataset = OrchardRoad(filepath)
-    file_name = filepath.split('/')[-1]
+    # file_name = filepath.split('/')[-1]
+    file_name = filepath.split('\\')[-1]
 
-    snap_path = 'av_randlanet_scfnet/checkpoints'
+    # snap_path = 'av_randlanet_scfnet/checkpoints'
+    snap_path = 'av_randlanet_scfnet\checkpoints'
     snap_steps = [int(f[:-5].split('-')[-1])
                   for f in os.listdir(snap_path) if f[-5:] == '.meta']
     chosen_step = np.sort(snap_steps)[-1]
@@ -301,4 +306,3 @@ def predict(filepath):
                          restore_snap=chosen_snap)
     tester.infer(model, dataset, file_name)
     print("Prediction finished!")
-
