@@ -18,8 +18,8 @@ deprecation._PRINT_DEPRECATION_WARNINGS = False
 class OrchardRoad:
     def __init__(self, filepath):
         self.name = 'OrchardRoad'
-        # self.path = 'av_randlanet_scfnet/data/orchard_road'
-        self.path = 'av_randlanet_scfnet\data\orchard_road'
+        self.path = 'av_randlanet_scfnet/data/orchard_road'
+        # self.path = 'av_randlanet_scfnet\data\orchard_road'
         # self.path = os.path.dirname(os.path.abspath(filepath))
         self.label_to_names = {
             0: 'Bollard',
@@ -45,8 +45,8 @@ class OrchardRoad:
         self.test_pc_folder = join(self.path, 'test_inputs')
 
         # Initial training-validation-testing files
-        # self.test_inputs = [filepath.split("/")[-1]]
-        self.test_inputs = [filepath.split("\\")[-1]]
+        self.test_inputs = [filepath.split("/")[-1]]
+        # self.test_inputs = [filepath.split("\\")[-1]]
         self.test_files = [filepath]
 
         # Initiate containers
