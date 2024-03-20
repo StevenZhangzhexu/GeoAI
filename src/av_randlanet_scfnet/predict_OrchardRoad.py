@@ -19,7 +19,7 @@ class OrchardRoad:
     def __init__(self, filepath):
         self.name = 'OrchardRoad'
         # self.path = 'av_randlanet_scfnet/data/orchard_road'
-        self.path = 'av_randlanet_scfnet\data\orchard_road'
+        self.path = os.path.dirname(os.path.abspath(filepath))
         self.label_to_names = {
             0: 'Bollard',
             1: 'Building',
