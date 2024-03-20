@@ -14,7 +14,8 @@ sys.path.append(BASE_DIR)
 sys.path.append(ROOT_DIR)
 
 
-def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data/orchard_road'):
+# def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data/orchard_road'):
+def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet\data\orchard_road'):
     # UTM_OFFSET = [627285, 4841948, 0]
     # original_pc_folder = join(dataset_path, 'original_las')
     sub_pc_folder = join(dataset_path, 'input_{:.3f}'.format(grid_size))
