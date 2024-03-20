@@ -45,6 +45,7 @@ class ConfigOrchardRoad:
     train_sum_dir = 'train_log'
     saving = True
     saving_path = 'av_randlanet_scfnet/results/'
+    # saving_path = 'av_randlanet_scfnet' + '\\' + 'results'
 
     augment_scale_anisotropic = True
     augment_symmetries = [True, False, False]
@@ -60,8 +61,8 @@ class ConfigToronto3D:
     num_points = 65536  # Number of input points
     num_classes = 8  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = False # Use RGB
-    use_intensity = False # Use intensity
+    use_rgb = False  # Use RGB
+    use_intensity = False  # Use intensity
 
     batch_size = 4  # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
