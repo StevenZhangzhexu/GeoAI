@@ -65,8 +65,8 @@ class OrchardRoad:
         files = self.test_files
 
         for i, file_path in enumerate(files):
-            # cloud_name = file_path.split('/')[-1][:-4]
-            cloud_name = file_path.split('\\')[-1][:-4]
+            cloud_name = file_path.split('/')[-1][:-4]
+            # cloud_name = file_path.split('\\')[-1][:-4]
             print('Load_pc_' + str(i) + ': ' + cloud_name)
             cloud_split = 'predict'
 
@@ -290,11 +290,11 @@ def predict(filepath):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     dataset = OrchardRoad(filepath)
-    # file_name = filepath.split('/')[-1]
-    file_name = filepath.split('\\')[-1]
+    file_name = filepath.split('/')[-1]
+    # file_name = filepath.split('\\')[-1]
 
-    # snap_path = 'av_randlanet_scfnet/checkpoints'
-    snap_path = 'av_randlanet_scfnet\checkpoints'
+    snap_path = 'av_randlanet_scfnet/checkpoints'
+    # snap_path = 'av_randlanet_scfnet\checkpoints'
     snap_steps = [int(f[:-5].split('-')[-1])
                   for f in os.listdir(snap_path) if f[-5:] == '.meta']
     chosen_step = np.sort(snap_steps)[-1]
