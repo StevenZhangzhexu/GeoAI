@@ -7,11 +7,14 @@ import subprocess
 from convert_shp import convert
 import pickle
 
+
 app = Flask(__name__, static_folder='static/')
+
 
 @app.route('/')
 def upload():
     return render_template("file_upload_form1.html")
+
 
 @app.route('/result', methods=['POST'])
 def result():
@@ -68,6 +71,7 @@ def result():
         except Exception as err:
             print(err)
             return render_template("error.html", name=f.filename)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8001, debug=True)

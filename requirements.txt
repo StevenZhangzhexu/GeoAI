@@ -25,3 +25,6 @@ matplotlib
 pyvista
 pptk
 kivy
+
+pyinstaller
+py2exe
