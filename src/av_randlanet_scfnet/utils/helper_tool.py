@@ -13,10 +13,10 @@ sys.path.append(os.path.join(BASE_DIR, ''))
 
 import cpp_wrappers.cpp_subsampling.grid_subsampling as cpp_subsampling
 
-# try:
-#     import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
-# except:
-#     import av_randlanet_scfnet.utils.nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
+try:
+    import nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
+except:
+    import av_randlanet_scfnet.utils.nearest_neighbors.lib.python.nearest_neighbors as nearest_neighbors
 
 
 class ConfigOrchardRoad:
@@ -25,8 +25,8 @@ class ConfigOrchardRoad:
     num_points = 40960  # 65536 (RandLA-Net)  # Number of input points
     num_classes = 13  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = True     # Use RGB
-    use_intensity = True   # Use intensity
+    use_rgb = False     # Use RGB
+    use_intensity = False   # Use intensity
     resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
@@ -237,9 +237,9 @@ class DataProcessing:
         :return: neighbor_idx: neighboring points indexes, B*N2*k
         """
 
-        # neighbor_idx = nearest_neighbors.knn_batch(support_pts, query_pts, k, omp=True)
-        import pynndescent
-        neighbor_idx = pynndescent.NNDescent(query_pts)
+        neighbor_idx = nearest_neighbors.knn_batch(support_pts, query_pts, k, omp=True)
+        # import pynndescent
+        # neighbor_idx = pynndescent.NNDescent(query_pts)
         return neighbor_idx.astype(np.int32)
 
     @staticmethod
