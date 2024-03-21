@@ -146,11 +146,11 @@ button_frame.pack(pady=20)
 
 # Create button to open file dialog
 btn_open = tk.Button(button_frame, text="Open & Visualize Point Cloud", command=open_file_dialog)
-btn_open.grid(row=2, column=0, padx=10)
+btn_open.grid(row=0, column=0, padx=10)
 
 # Create button to perform segmentation
 btn_submit = tk.Button(button_frame, text="Submit to Run Segmentation", command=perform_segmentation)
-btn_submit.grid(row=5, column=0, padx=10)
+btn_submit.grid(row=0, column=1, padx=10)
 
 # Run the GUI
 root.mainloop()
