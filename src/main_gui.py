@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import ttk
 import time
+import subprocess
 import laspy
 import open3d as o3d
 import numpy as np
@@ -118,10 +119,14 @@ def perform_segmentation():
         update_progress(progressbar, 60)
 
         # instance segmentation
-        sam_instance_segmentation.run_sam_instance_segmentation(filename)
+        # sam_instance_segmentation.run_sam_instance_segmentation(filename)
+        subprocess.run(['C:/Users/User/miniconda3/envs/samlidar/bin/python',
+                        'av_randlanet_scfnet/utils/sam_instance_segmentation.py', filename])
         update_progress(progressbar, 90)
 
         # vis_pred_semseg_OrchardRoad.viz_pred_semseg(filename)
+        subprocess.run(['C:/Users/User/miniconda3/envs/samlidar/bin/python',
+                        'av_randlanet_scfnet/vis_pred_semseg_OrchardRoad.py', filename])
         update_progress(progressbar, 100)
 
         time.sleep(5)  # Simulate segmentation process (5 seconds)
