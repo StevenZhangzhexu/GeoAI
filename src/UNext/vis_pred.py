@@ -89,6 +89,7 @@ def viz_pred_semseg(filename):
     with open(file_path, 'wb') as file:
         pickle.dump(bbox_dict, file)
 
+
 if __name__ == "__main__":
 
     logging.basicConfig(

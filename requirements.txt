@@ -37,4 +37,4 @@ alphashape
 shapely
 
 pyinstaller
-py2exe
+#py2exe
