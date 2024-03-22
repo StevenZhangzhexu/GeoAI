@@ -56,7 +56,7 @@ def result():
             # Post-process
             # separate_predicted_objects 
             if option != 'model0':
-                subprocess.run(['/home/steven/miniconda3/envs/vis/bin/python', 
+                subprocess.run(['/home/steven/miniconda3/envs/open3d/bin/python',
                                 'UNext/vis_pred.py', f.filename])                       
             # Convert objects to shp file
             if 'convertButton' in request.form:

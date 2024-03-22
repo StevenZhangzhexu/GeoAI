@@ -139,9 +139,9 @@ def viz_pred_bboxes_all(filename):
 
 
 if __name__ == '__main__':
-    # viz_pred_bboxes_all(sys.argv[1])
-    viz_pred_bboxes_by_label(sys.argv[1], "Pole")
-    viz_pred_bboxes_by_label(sys.argv[1], "LampPost")
-    viz_pred_bboxes_by_label(sys.argv[1], "Tree")
-    viz_pred_bboxes_by_label(sys.argv[1], "Sign")
-    viz_pred_bboxes_by_label(sys.argv[1], "SolarPanel")
+    viz_pred_bboxes_all(sys.argv[1])
+    # viz_pred_bboxes_by_label(sys.argv[1], "Pole")
+    # viz_pred_bboxes_by_label(sys.argv[1], "LampPost")
+    # viz_pred_bboxes_by_label(sys.argv[1], "Tree")
+    # viz_pred_bboxes_by_label(sys.argv[1], "Sign")
+    # viz_pred_bboxes_by_label(sys.argv[1], "SolarPanel")
