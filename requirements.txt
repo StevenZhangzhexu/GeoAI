@@ -34,7 +34,7 @@ kivy
 tqdm
 geopandas
 alphashape
-
+shapely
 
 pyinstaller
 py2exe
