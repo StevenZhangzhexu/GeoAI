@@ -4,9 +4,14 @@ Cython
 scikit-learn
 pandas
 
-torch --index-url https://download.pytorch.org/whl/cu118
-torchvision --index-url https://download.pytorch.org/whl/cu118
-torchaudio --index-url https://download.pytorch.org/whl/cu118
+#torch --index-url https://download.pytorch.org/whl/cu118
+#torchvision --index-url https://download.pytorch.org/whl/cu118
+#torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+torch --index-url https://download.pytorch.org/whl/cu117
+torchvision --index-url https://download.pytorch.org/whl/cu117
+torchaudio --index-url https://download.pytorch.org/whl/cu117
+
 segment-lidar
 open3d
 tensorboard
