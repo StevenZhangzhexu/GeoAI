@@ -26,5 +26,10 @@ pyvista
 pptk
 kivy
 
+tqdm
+geopandas
+alphashape
+
+
 pyinstaller
 py2exe
