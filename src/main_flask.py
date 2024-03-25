@@ -22,11 +22,13 @@ def upload():
         password = request.form.get('password')
 
         try:
-            if "@alteredverse.net" in email or "@yjpsurveyors.com " in email:
+            if "@alteredverse.net" in email or "@yjpsurveyors.com " in email and len(password) >= 8:
                 return render_template("main.html")
+            else:
+                return render_template("error2.html", msg="Please contact the admin for further assistance.")
         except Exception as err:
             print(err)
-            return render_template("error2.html")
+            return render_template("error2.html", msg=err)
 
 
 @app.route('/result', methods=['POST'])
