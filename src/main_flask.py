@@ -11,8 +11,13 @@ app = Flask(__name__, static_folder='static/')
 
 
 @app.route('/')
+def login():
+    return render_template("login.html")
+
+
+@app.route('/upload')
 def upload():
-    return render_template("file_upload_form.html")
+    return render_template("main.html")
 
 
 @app.route('/result', methods=['POST'])

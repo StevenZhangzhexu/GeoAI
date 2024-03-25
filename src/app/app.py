@@ -23,7 +23,7 @@ async def root():
 @app.get("/upload", response_class=HTMLResponse)
 async def upload_page(request: Request):
 
-    return templates.TemplateResponse("file_upload_form.html", {"request": request})
+    return templates.TemplateResponse("main.html", {"request": request})
 
 
 @app.post("/upload_single")
