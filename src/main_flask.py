@@ -1,7 +1,7 @@
 import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, convert_shp
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, shapefile_conversion
 # from av_randlanet_scfnet.utils import sam_instance_segmentation
 # from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
@@ -67,7 +67,7 @@ def result():
             # separate_predicted_objects.separate_and_cluster_point_cloud_objects(f.filename)
 
             # shapefile conversion
-            convert_shp.convert_main(f.filename, file_path)
+            shapefile_conversion.convert_main(f.filename)
 
             # copy the results to shared folder
             helper_las.copy_predictions()

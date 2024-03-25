@@ -1,4 +1,5 @@
 import os
+import sys
 from tqdm import tqdm
 import geopandas as gpd
 from shapely.geometry import Point, Polygon
@@ -277,4 +278,5 @@ def convert_main(filename):
 
 
 if __name__ == '__main__':
-    convert_main("Orchard_0913_labelled_E.laz")
+    # convert_main("Orchard_0913_labelled_E.laz")
+    convert_main(sys.argv[1])
