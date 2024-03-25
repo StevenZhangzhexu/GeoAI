@@ -22,7 +22,7 @@ def upload():
         password = request.form.get('password')
 
         try:
-            if "@alteredverse.net" in email or "@yjpsurveyors.com " in email and len(password) >= 8:
+            if email.endswith("@alteredverse.net") or email.endswith("@yjpsurveyors.com"):
                 return render_template("main.html")
             else:
                 return render_template("error2.html", msg="Please contact the admin for further assistance.")
