@@ -49,12 +49,6 @@
     <!-- Custom styles for this template -->
     <link href="../static/cover.css" rel="stylesheet">
 
-    <script>
-      document.getElementById("geoai").addEventListener("submit", function() {
-          document.getElementById("loading").style.display = "block";
-      });
-    </script>
-
   </head>
   <body class="d-flex h-100 text-center text-white bg-dark">
 
@@ -76,7 +70,7 @@
     <form id="geoai" action="/result" method="post" enctype="multipart/form-data">
       <div class="form-row align-items-center">
         <div class="col-auto">
-          <input class="form-control form-control-lg" id="formFileLg" type="file" name="file" />
+          <input class="form-control form-control-lg" id="formFileLg" type="file" name="file" required/>
         </div>
           <br>
         <div class="col-auto">
@@ -84,7 +78,7 @@
         </div>
       </div>
     </form>
-    <div id="loading" style="display: none;">
+    <div id="processing" style="display: none;">
       <img src="../static/images/spinner.gif" alt="Processing..." width="5%">
     </div>
   </main>
@@ -94,6 +88,11 @@
   </footer>
 </div>
 
+  <script>
+      document.getElementById("geoai").addEventListener("submit", function() {
+          document.getElementById("processing").style.display = "block";
+      });
+    </script>
 
   </body>
 </html>
