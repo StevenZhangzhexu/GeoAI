@@ -15,7 +15,7 @@ def login():
     return render_template("login.html")
 
 
-@app.route('/upload', methods=['POST'])
+@app.route('/home', methods=['POST'])
 def upload():
     if request.method == 'POST':
         email = request.form.get('email')
