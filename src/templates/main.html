@@ -29,12 +29,11 @@
       }
 
       #loading {
-          position: fixed;
+          position: relative;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
           z-index: 1000;
-          background-color: rgba(255, 255, 255, 0.7);
           padding: 20px;
           border-radius: 10px;
       }
@@ -71,9 +70,7 @@
   </header>
 
   <main class="px-3">
-    <div id="loading" style="display: none;">
-      <img src="spinner.gif" alt="Loading...">
-    </div>
+
     <h1>GeoAI: Point Cloud Semantic Segmentation</h1>
     <h2>Upload a urban road point cloud to run the GeoAI:</h2>
     <form id="geoai" action="/result" method="post" enctype="multipart/form-data">
@@ -87,6 +84,9 @@
         </div>
       </div>
     </form>
+    <div id="loading" style="display: none;">
+      <img src="../static/images/spinner.gif" alt="Processing..." width="5%">
+    </div>
   </main>
 
   <footer class="mt-auto text-white-50">
