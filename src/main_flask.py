@@ -17,7 +17,13 @@ def login():
 
 @app.route('/upload')
 def upload():
-    return render_template("main.html")
+    if request.method == 'POST':
+
+        try:
+            return render_template("main.html")
+        except Exception as err:
+            print(err)
+            return render_template("error2.html")
 
 
 @app.route('/result', methods=['POST'])
