@@ -300,4 +300,4 @@ def predict(filepath,uploadpath, id=1):
     tester.infer(model, dataset, id=id)
     print("Prediction finished!")
 
-    return tester.chosen_folder_path() 
+    return tester.chosen_folder_path()
