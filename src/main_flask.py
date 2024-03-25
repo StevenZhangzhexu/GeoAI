@@ -28,7 +28,7 @@ def upload():
                 return render_template("error2.html", msg="Please contact the admin for further assistance.")
         except Exception as err:
             print(err)
-            return render_template("error2.html", msg=err)
+            return render_template("error2.html", msg="Please provide correct credentials.")
 
 
 @app.route('/result', methods=['POST'])
