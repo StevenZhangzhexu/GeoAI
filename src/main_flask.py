@@ -15,9 +15,11 @@ def login():
     return render_template("login.html")
 
 
-@app.route('/upload')
+@app.route('/upload', methods=['POST'])
 def upload():
     if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
 
         try:
             return render_template("main.html")
