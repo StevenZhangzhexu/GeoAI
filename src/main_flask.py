@@ -5,7 +5,8 @@ from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_o
 # from av_randlanet_scfnet.utils import sam_instance_segmentation
 # from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
-import open3d as o3d
+import threading
+import time
 
 
 app = Flask(__name__, static_folder='static/')
@@ -44,11 +45,6 @@ def result():
             os.makedirs(upload_path, exist_ok=True)
             f.save(file_path)
 
-            # visualize input
-
-            subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-                            'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
-
             # pre-process
             data_prepare_orchard.prepare_data(file_path)
 
@@ -86,6 +82,19 @@ def result():
             #                 'av_randlanet_scfnet/vis_pred_bboxes_OrchardRoad.py', f.filename])
 
             print("All finished!")
+
+            # visualize prediction
+            def thread_vis():
+                print("Thread starting...")
+                time.sleep(2)
+                subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
+                            'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
+                print("Thread finishing...")
+
+            threading.current_thread().join(timeout=2)
+            time.sleep(3)
+            x = threading.Thread(target=thread_vis)
+            x.start()
 
             return render_template("success.html", name=f.filename)
         except Exception as err:

@@ -60,25 +60,26 @@ def o3d_viz(cloud, predicted=False):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     if predicted:
-        # predictions = cloud.pred
-        predictions = cloud.label
+        predictions = cloud.pred
+        # predictions = cloud.label
         colors = np.array([label_to_color(label) for label in predictions])  # Map labels to colors
         pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)  # Normalize colors to [0, 1]
 
     # Visualize the merged point cloud with colors
     # o3d.visualization.draw_geometries([pcd])
-    # pcd.paint_uniform_color((1.0, 0.0, 0.0))
+    pcd.paint_uniform_color((1.0, 0.0, 0.0))
     o3d.visualization.draw(pcd)
 
 
 # Function to visualize point cloud
 def visualize_point_cloud(filename, annotated=False):
     # Load point cloud data using laspy
-    upload_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs'
-    file_path = os.path.join(upload_path, filename)
+    # upload_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs'
+    # file_path = os.path.join(upload_path, filename)
+    file_path = os.path.join('av_randlanet_scfnet/results/', filename, 'predictions/', filename)
     las_data = laspy.read(file_path)
     o3d_viz(las_data, predicted=annotated)
 
 
 if __name__ == "__main__":
-    visualize_point_cloud(sys.argv[1])
+    visualize_point_cloud(sys.argv[1], annotated=True)
