@@ -67,7 +67,7 @@ def o3d_viz(cloud, predicted=False):
 
     # Visualize the merged point cloud with colors
     # o3d.visualization.draw_geometries([pcd])
-    pcd.paint_uniform_color((1.0, 0.0, 0.0))
+    # pcd.paint_uniform_color((1.0, 0.0, 0.0))
     o3d.visualization.draw(pcd)
 
 
