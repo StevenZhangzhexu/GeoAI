@@ -91,7 +91,6 @@ def result():
                             'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
-            threading.current_thread().join(timeout=2)
             time.sleep(3)
             x = threading.Thread(target=thread_vis)
             x.start()
