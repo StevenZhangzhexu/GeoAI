@@ -4,6 +4,7 @@
 # Copyright (c) 2018-2023 www.open3d.org
 # SPDX-License-Identifier: MIT
 # ----------------------------------------------------------------------------
+import os
 import sys
 import laspy
 import open3d as o3d
@@ -67,11 +68,13 @@ def o3d_viz(cloud, predicted=False):
 
 
 # Function to visualize point cloud
-def visualize_point_cloud(file_path, annotated=False):
+def visualize_point_cloud(filename, annotated=False):
     # Load point cloud data using laspy
+    upload_path = 'av_randlanet_scfnet/data/orchard_road/test_inputs'
+    file_path = os.path.join(upload_path, filename)
     las_data = laspy.read(file_path)
     o3d_viz(las_data, predicted=annotated)
 
 
 if __name__ == "__main__":
-    visualize_point_cloud(sys.argv[1], annotated=True)
+    visualize_point_cloud(sys.argv[1])
