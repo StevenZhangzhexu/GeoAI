@@ -11,6 +11,10 @@ import open3d as o3d
 import numpy as np
 
 
+os.environ["WEBRTC_IP"]="192.168.50.148"
+os.environ["WEBRTC_PORT"]="8888"
+
+
 o3d.visualization.webrtc_server.enable_webrtc()
 
 
@@ -77,4 +81,4 @@ def visualize_point_cloud(filename, annotated=False):
 
 
 if __name__ == "__main__":
-    visualize_point_cloud(sys.argv[5])
+    visualize_point_cloud(sys.argv[1])
