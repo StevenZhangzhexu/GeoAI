@@ -7,14 +7,14 @@
 import os
 import sys
 import laspy
-import open3d as o3d
 import numpy as np
 
 
-os.environ["WEBRTC_IP"]="192.168.50.148"
-os.environ["WEBRTC_PORT"]="8888"
+os.environ["WEBRTC_IP"] = "192.168.50.148"
+os.environ["WEBRTC_PORT"] = "8888"
 
 
+import open3d as o3d
 o3d.visualization.webrtc_server.enable_webrtc()
 
 

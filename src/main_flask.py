@@ -45,8 +45,9 @@ def result():
             f.save(file_path)
 
             # visualize input
-            # subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-            #                 'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename, '=', 'WEBRTC_PORT=8888'])
+
+            subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
+                            'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
 
             # pre-process
             data_prepare_orchard.prepare_data(file_path)
