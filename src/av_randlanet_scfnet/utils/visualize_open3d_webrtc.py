@@ -74,4 +74,4 @@ def visualize_point_cloud(file_path, annotated=False):
 
 
 if __name__ == "__main__":
-    visualize_point_cloud(sys.argv[1])
+    visualize_point_cloud(sys.argv[1], annotated=True)
