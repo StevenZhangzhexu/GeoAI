@@ -5,6 +5,7 @@ from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_o
 # from av_randlanet_scfnet.utils import sam_instance_segmentation
 # from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
+import open3d as o3d
 
 
 app = Flask(__name__, static_folder='static/')
