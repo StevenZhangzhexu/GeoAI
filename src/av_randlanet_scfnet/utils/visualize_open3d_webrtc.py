@@ -55,12 +55,14 @@ def o3d_viz(cloud, predicted=False):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     if predicted:
-        predictions = cloud.pred
+        # predictions = cloud.pred
+        predictions = cloud.label
         colors = np.array([label_to_color(label) for label in predictions])  # Map labels to colors
         pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)  # Normalize colors to [0, 1]
 
     # Visualize the merged point cloud with colors
     # o3d.visualization.draw_geometries([pcd])
+    # pcd.paint_uniform_color((1.0, 0.0, 0.0))
     o3d.visualization.draw(pcd)
 
 
