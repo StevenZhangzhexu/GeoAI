@@ -155,4 +155,7 @@ def run_sam_instance_segmentation(filename):
 
 
 if __name__ == '__main__':
-    run_sam_instance_segmentation(sys.argv[1])
+    try:
+        run_sam_instance_segmentation(sys.argv[1])
+    except Exception as err:
+        print(err)

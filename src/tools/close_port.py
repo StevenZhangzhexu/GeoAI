@@ -31,7 +31,10 @@ def free_port(port):
 
 
 if __name__ == "__main__":
-    if is_port_in_use(8888):
-        free_port(8888)
-    else:
-        print("Port 8888 is available.")
+    try:
+        if is_port_in_use(8888):
+            free_port(8888)
+        else:
+            print("Port 8888 is available.")
+    except Exception as err:
+        print(err)
