@@ -1,7 +1,7 @@
 import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, shapefile_conversion
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, shapefile_conversion, close_port
 # from av_randlanet_scfnet.utils import sam_instance_segmentation
 # from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
@@ -91,20 +91,7 @@ def result():
                             'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
-            def kill_thread():
-                try:
-                    from psutil import process_iter
-                    from signal import SIGKILL
-
-                    for proc in process_iter():
-                        for conns in proc.get_connections(kind='inet'):
-                            if conns.laddr[1] == 8888:
-                                proc.send_signal(SIGKILL)
-                                continue
-                except:
-                    pass
-
-            kill_thread()
+            close_port.close_port(8888)
             time.sleep(2)
             x = threading.Thread(target=thread_vis)
             x.start()
