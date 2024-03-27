@@ -39,4 +39,4 @@ shapely
 pyinstaller
 #py2exe
 
-psutil
+psutil==2.2.1

@@ -92,14 +92,17 @@ def result():
                 print("Thread finishing...")
 
             def kill_thread():
-                from psutil import process_iter
-                from signal import SIGKILL
+                try:
+                    from psutil import process_iter
+                    from signal import SIGKILL
 
-                for proc in process_iter():
-                    for conns in proc.get_connections(kind='inet'):
-                        if conns.laddr[1] == 8888:
-                            proc.send_signal(SIGKILL)
-                            continue
+                    for proc in process_iter():
+                        for conns in proc.get_connections(kind='inet'):
+                            if conns.laddr[1] == 8888:
+                                proc.send_signal(SIGKILL)
+                                continue
+                except:
+                    pass
 
             kill_thread()
             time.sleep(2)
