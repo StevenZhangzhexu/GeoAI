@@ -3,7 +3,6 @@ import sys
 import laspy
 import numpy as np
 import open3d as o3d
-from sklearn.decomposition import PCA
 
 
 def rotate_view(vis):

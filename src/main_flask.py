@@ -77,9 +77,9 @@ def result():
             # visualize predictions
             # vis_pred_OrchardRoad.viz_pred(f.filename)
             # subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-            #                 'av_randlanet_scfnet/vis_pred_semseg_OrchardRoad.py', f.filename])
+            #                 'tools/vis_pred_semseg_OrchardRoad.py', f.filename])
             # subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-            #                 'av_randlanet_scfnet/vis_pred_bboxes_OrchardRoad.py', f.filename])
+            #                 'tools/vis_pred_bboxes_OrchardRoad.py', f.filename])
 
             print("All finished!")
 
@@ -88,12 +88,12 @@ def result():
                 print("Thread starting...")
                 time.sleep(2)
                 subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-                            'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
+                            'tools/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
             # close_port.close_port(8888)
             subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
-                            'av_randlanet_scfnet/utils/close_port.py'])
+                            'tools/close_port.py'])
             time.sleep(2)
             x = threading.Thread(target=thread_vis)
             x.start()
