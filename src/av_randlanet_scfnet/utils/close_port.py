@@ -17,7 +17,8 @@ def free_port(port):
 
     for process in psutil.net_connections():
         if process.laddr[1] == port:
-            print(f"Found process using port {port}: {process.pid} - {process.name}")
+            # print(f"Found process using port {port}: {process.pid} - {process.name}")
+            print(f"Found process using port {port}.")
             # Get the process object associated with the connection
             try:
                 parent = process.pid  # Assuming the parent process is using the port
