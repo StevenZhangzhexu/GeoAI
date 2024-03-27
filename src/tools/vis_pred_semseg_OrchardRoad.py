@@ -48,7 +48,7 @@ def prepare_custom_data(pc_names, path):
         data = {
             'name': "OrchardRoad_RandLAnet",
             'points': points,
-            'feat': pcd.intensity,
+            # 'feat': pcd.intensity,
             'pred': pcd.pred,
         }
         pc_data.append(data)
