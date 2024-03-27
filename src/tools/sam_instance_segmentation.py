@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import laspy
-import helper_las
+from src.av_randlanet_scfnet.utils import helper_las
 import traceback
 
 

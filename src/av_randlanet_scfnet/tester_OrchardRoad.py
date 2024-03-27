@@ -4,7 +4,6 @@ from os.path import join
 from av_randlanet_scfnet.utils.helper_las import read_las, write_laz, save_coordinates
 import tensorflow as tf
 import numpy as np
-import laspy
 import time
 
 
