@@ -97,7 +97,7 @@ def result():
 
                 for proc in process_iter():
                     for conns in proc.get_connections(kind='inet'):
-                        if conns.laddr[1] == 1300:
+                        if conns.laddr[1] == 8888:
                             proc.send_signal(SIGKILL)
                             continue
 
