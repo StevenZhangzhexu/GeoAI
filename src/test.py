@@ -1,7 +1,7 @@
 import time
 from av_randlanet_scfnet import predict_OrchardRoad
 from av_randlanet_scfnet.utils import data_prepare_orchard
-from src.tools import separate_predicted_objects
+from src.av_randlanet_scfnet.utils import separate_predicted_objects
 
 start = time.time()
 print("Starting...")

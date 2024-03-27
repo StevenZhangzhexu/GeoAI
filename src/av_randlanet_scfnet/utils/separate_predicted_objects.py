@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 from multiprocessing import Pool
 from queue import Queue
-from src.av_randlanet_scfnet.utils import helper_las
+import helper_las
 
 label_to_names = {
     0: 'Bollard',
