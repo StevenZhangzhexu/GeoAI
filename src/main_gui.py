@@ -8,8 +8,7 @@ import open3d as o3d
 import numpy as np
 from av_randlanet_scfnet import predict_OrchardRoad
 # from av_randlanet_scfnet import vis_pred_semseg_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, sam_instance_segmentation
-
+from av_randlanet_scfnet.utils import data_prepare_orchard
 
 # Global variable to store the selected file path
 file_path = None

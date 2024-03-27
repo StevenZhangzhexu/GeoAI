@@ -1,12 +1,9 @@
 import os
-import sys
 import laspy
 import numpy as np
 from sklearn.cluster import DBSCAN
 from multiprocessing import Pool
 from queue import Queue
-from threading import Thread
-from time import sleep
 import helper_las
 
 

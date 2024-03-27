@@ -7,7 +7,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 import time
 from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las
+from av_randlanet_scfnet.utils import data_prepare_orchard
 
 
 # Placeholder function to segment point cloud (replace with actual segmentation code)

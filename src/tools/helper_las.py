@@ -2,7 +2,6 @@ import os
 import laspy
 import numpy as np
 from pyproj import Proj, itransform
-import shutil
 from distutils.dir_util import copy_tree
 import helper_json
 
