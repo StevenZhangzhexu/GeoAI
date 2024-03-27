@@ -1,7 +1,7 @@
 import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
-from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, shapefile_conversion, close_port
+from av_randlanet_scfnet.utils import data_prepare_orchard, separate_predicted_objects, helper_las, shapefile_conversion
 # from av_randlanet_scfnet.utils import sam_instance_segmentation
 # from av_randlanet_scfnet import vis_pred_OrchardRoad
 import subprocess
@@ -91,7 +91,9 @@ def result():
                             'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
-            close_port.close_port(8888)
+            # close_port.close_port(8888)
+            subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
+                            'av_randlanet_scfnet/utils/close_port.py'])
             time.sleep(2)
             x = threading.Thread(target=thread_vis)
             x.start()
