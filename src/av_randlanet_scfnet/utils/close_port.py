@@ -1,14 +1,16 @@
 import os
+import re
 import subprocess
 
 
 def is_port_in_use(port):
-    """Checks if a specific port is already in use."""
-    result = subprocess.run(['netstat', '-atlpn'], capture_output=True, text=True)
-    for line in result.stdout.splitlines():
-        if str(port) in line:
-            return True
-    return False
+  """Checks if a specific port is already in use."""
+  result = subprocess.run(['netstat', '-atlpn'], capture_output=True, text=True)
+  for line in result.stdout.splitlines():
+    match = re.search(r'\d+/' + str(port), line)  # Look for digits followed by port number
+    if match:
+      return True
+  return False
 
 
 def close_port(port):
