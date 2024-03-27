@@ -8,6 +8,7 @@ import os
 import sys
 import laspy
 import numpy as np
+import vis_pred_semseg_OrchardRoad
 
 
 os.environ["WEBRTC_IP"] = "192.168.50.148"
@@ -82,4 +83,5 @@ def visualize_point_cloud(filename, annotated=False):
 
 
 if __name__ == "__main__":
-    visualize_point_cloud(sys.argv[1], annotated=True)
+    # visualize_point_cloud(sys.argv[1], annotated=True)
+    vis_pred_semseg_OrchardRoad.viz_pred_semseg(sys.argv[1])
