@@ -91,7 +91,18 @@ def result():
                             'av_randlanet_scfnet/utils/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
-            time.sleep(3)
+            def kill_thread():
+                from psutil import process_iter
+                from signal import SIGKILL
+
+                for proc in process_iter():
+                    for conns in proc.get_connections(kind='inet'):
+                        if conns.laddr[1] == 1300:
+                            proc.send_signal(SIGKILL)
+                            continue
+
+            kill_thread()
+            time.sleep(2)
             x = threading.Thread(target=thread_vis)
             x.start()
 
