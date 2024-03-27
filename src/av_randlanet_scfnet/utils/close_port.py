@@ -17,7 +17,7 @@ def free_port(port):
 
     for process in psutil.net_connections():
         if process.laddr[1] == port:
-            print(f"Found process using port {port}: {process.pid} - {process.name}")
+            print(f"Found process using port {port}.")
             # Be cautious! This terminates the process. Consider checking the process name before termination.
             process.terminate()
             print(f"Process terminated. Port {port} should be free now.")
