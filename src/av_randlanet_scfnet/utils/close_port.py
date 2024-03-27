@@ -2,11 +2,11 @@ import psutil
 
 
 def is_port_in_use(port):
-    """Checks if a specific port is already in use."""
-    for process in psutil.net_connections():
-        if process.laddr.port == port:
-            return True
-    return False
+  """Checks if a specific port is already in use."""
+  for process in psutil.net_connections():
+    if process.laddr[1] == port:  # Access port from the second element of the tuple
+      return True
+  return False
 
 
 def free_port(port):
