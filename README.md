@@ -32,6 +32,7 @@ Production Flask server: `waitress-serve --host 127.0.0.1 main_flask1:app`
 Port forwarding: `ssh -R 80:localhost:8080 serveo.net`
 
 Production ngrok file server: `ngrok http "file:///home/pc1/shared"`
+Enable LAN FTP Server: `sudo apt install vsftpd`
 
 ## Installation (U-Next & Conversion)
 ```
