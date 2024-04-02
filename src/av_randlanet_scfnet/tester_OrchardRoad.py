@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import join
 
-from av_randlanet_scfnet.utils.helper_las import read_las, write_laz, save_coordinates
+from av_randlanet_scfnet.utils.helper_las import read_las, write_laz, save_coordinates, write_laz_with_labels
 import tensorflow as tf
 import numpy as np
 import time
@@ -121,7 +121,7 @@ class ModelTester:
                         # Save laz
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
-                        write_laz(pred_filepath, test_las, points, preds)
+                        write_laz_with_labels(pred_filepath, test_las, points, preds)
                         save_coordinates(
                             pred_filepath[:-4], test_las, points, preds)
                         log_string(pred_filepath +
@@ -144,4 +144,6 @@ class ModelTester:
     @staticmethod
     def load_test_points(file_path):
         data = read_las(file_path)
+        if 'label' in list(data.header.point_format.dimension_names):
+            return np.vstack((data.x, data.y, data.z, data.label)).T
         return np.vstack((data.x, data.y, data.z)).T

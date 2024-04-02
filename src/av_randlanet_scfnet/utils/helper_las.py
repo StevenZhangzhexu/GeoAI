@@ -56,6 +56,37 @@ def write_laz(save_filepath, original_las, points, preds):
     print("Prediction in .laz saved in path:", save_filepath)
 
 
+def write_laz_with_labels(save_filepath, original_las, points, preds):
+    # Add extension if not there
+    if not save_filepath.endswith('.laz'):
+        save_filepath = save_filepath[:-4] + '.laz'
+
+    # 1. Create a new header
+    header = laspy.LasHeader(point_format=3, version="1.2")
+    header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
+    header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
+    header.offsets = np.min(points[:3], axis=0)
+    header.scales = np.array([0.1, 0.1, 0.1])
+
+    # 2. Create a Las
+    las_writer = laspy.LasData(header)
+
+    # Define a list of attributes to transfer
+    attributes_to_transfer = list(original_las.point_format.dimension_names)
+    print(attributes_to_transfer)
+
+    # Transfer attributes from split_laz to las_writer
+    for attr_name in attributes_to_transfer:
+        setattr(las_writer, attr_name, getattr(original_las, attr_name))
+
+    if len(points) == 4:
+        las_writer.label = points[3:]
+    las_writer.pred = preds
+
+    las_writer.write(save_filepath)
+    print("Prediction in .laz with labels saved in path:", save_filepath)
+
+
 def write_sub_laz(save_filepath, points):
     # Add extension if not there
     if not save_filepath.endswith('.laz'):

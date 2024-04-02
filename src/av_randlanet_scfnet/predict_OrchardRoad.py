@@ -291,10 +291,8 @@ def predict(filepath):
 
     dataset = OrchardRoad(filepath)
     file_name = filepath.split('/')[-1]
-    # file_name = filepath.split('\\')[-1]
 
     snap_path = 'av_randlanet_scfnet/checkpoints'
-    # snap_path = 'av_randlanet_scfnet\checkpoints'
     snap_steps = [int(f[:-5].split('-')[-1])
                   for f in os.listdir(snap_path) if f[-5:] == '.meta']
     chosen_step = np.sort(snap_steps)[-1]
