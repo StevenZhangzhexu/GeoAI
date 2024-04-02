@@ -53,7 +53,73 @@ def create_bounding_box(min_bound, max_bound):
     return line_set
 
 
-def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
+def get_kitti_bbox_info(file_path):
+    # Load the .laz file
+    cloud = laspy.read(file_path)
+    points = np.vstack((cloud.x, cloud.y, cloud.z)).T
+
+    # Calculate center point
+    center = np.mean(points, axis=0)
+
+    # Apply PCA and extract eigenvectors
+    # Compute the covariance matrix
+    cov = np.cov(points, rowvar=False)
+
+    # Perform eigenvalue decomposition to get the rotation matrix
+    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    rot_mat = eigenvectors
+
+    # Transform points using the rotation matrix
+    rotated_points = np.dot(points, rot_mat)
+
+    # Calculate box size aligned with the elongation
+    box_size = np.max(rotated_points, axis=0) - np.min(rotated_points, axis=0)
+
+    print(center, rot_mat, box_size)
+    bbox = o3d.geometry.OrientedBoundingBox(center, rot_mat, box_size)
+
+    return bbox
+
+
+def get_base_center_for_tree_lamppost(object_points):
+    # Find the highest point (top)
+    highest_point = object_points[np.argmax(object_points[:, 2])]
+
+    # Estimate the base center by considering points at the lowest height
+    lowest_height = np.percentile(object_points[:, 2], 5)  # Assuming 5% height from the lowest
+    base_points = object_points[object_points[:, 2] < lowest_height]
+
+    # Calculate the center of these base points
+    center_xy = np.mean(base_points[:, :2], axis=0)  # Consider only X and Y coordinates
+
+    print(f"Highest point: {highest_point}")
+    print(f"Estimated base center: {center_xy}")
+
+    return center_xy
+
+
+def get_center_base_coords(coordinates, label_id):
+    # Find the point with the lowest z-coordinate (assuming z represents height)
+    base_point = coordinates[np.argmin(coordinates[:, 2])]
+    labels_with_elongations = [5, 6, 10, 11, 12]
+
+    # check if with elongations
+    if label_id in labels_with_elongations:
+        center_coordinate = get_base_center_for_tree_lamppost(coordinates)
+    else:
+        center_coordinate = np.mean(coordinates, axis=0)
+    print(center_coordinate)
+
+    center = {
+        'x': center_coordinate[0],
+        'y': center_coordinate[1],
+        'z': base_point[2],
+    }
+
+    return center
+
+
+def bbox_pcd(filename):
     # Create a list to store all bounding box geometries, centroids, and point counts
     bounding_boxes = []
     centroids = []
@@ -61,120 +127,57 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
     lbs = []
     cat_instances = defaultdict(list)
 
-    # cluster min_points, object min_points, object max_points
-    ceil = float('inf')
-    bound_dict = {
-        0: (50, 100, 150),  # 'Bollard',
-        1: (120, 120, ceil),  # 'Building',
-        2: (100, 100, 150),  # 'Bus Stop',
-        3: (70, 100, 150),  # 'Control Box',
-        4: (250, 300, ceil),  # 'Ground',
-        5: (60, 80, 250),  # 'Lamp Post',
-        6: (100, 100, 150),  # 'Pole'
-        7: (70, 50, 100),  # 'Railing'
-        8: (250, 250, ceil),  # 'Road',
-        9: (150, 150, 250),  # 'Shrub',
-        10: (50, 50, 100),  # 'Sign',
-        11: (100, 100, 150),  # 'Solar Panel',
-        12: (150, 200, ceil),  # 'Tree'
-    }
-
     ############
     # read file #
     ############
-    las_data = laspy.read(pc_path)
-    all_points = np.vstack((las_data.x, las_data.y, las_data.z)).T
-    labels = las_data.pred  # #Classification
-    # max bbox vol
-    all_points = np.column_stack((las_data.x, las_data.y, las_data.z))
-    min_coords = np.min(all_points, axis=0)
-    max_coords = np.max(all_points, axis=0)
-    max_dimensions = max_coords - min_coords
+    directory_path = f'av_randlanet_scfnet/results/{filename}/separate_objects/'
+    main_pcd_path = f'av_randlanet_scfnet/results/{filename}/predictions/{filename}'
 
-    for tag in sorted(set(labels)):
+    main = laspy.read(main_pcd_path)
+    coords = np.vstack((main.x, main.y, main.z)).T
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(coords)
+
+    for tag in name_dict.keys():
         print('tag', tag, 'class', name_dict[tag])
+        for fname in os.listdir(directory_path):
+            if tag in fname and not fname.endswith("_WGS84.laz"):
+                try:
+                    laz_file_path = os.path.join(directory_path, fname)
+                    bbox = get_kitti_bbox_info(laz_file_path)
 
-        class_points = las_data.points[las_data.pred == tag]
-        points = np.vstack((class_points.x, class_points.y, class_points.z)).T
-        # Create a PointCloud object
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(points)
+                    # read laz
+                    data = laspy.read(laz_file_path)
+                    points = np.vstack((data.x, data.y, data.z)).T
 
-        #############
-        # clustering #
-        #############
+                    # Compute bounding box
+                    min_coords = np.min(points, axis=0)
+                    max_coords = np.max(points, axis=0)
+                    max_dimensions = max_coords - min_coords
 
-        # Downsampling (xyz)
-        pcd = pcd.voxel_down_sample(voxel_size=0.1)
+                    # Get point count
+                    point_count = len(points)
+                    centroid = get_center_base_coords(points, tag)
 
-        # Convert point cloud to numpy array
-        points = np.asarray(pcd.points)
+                    # Add bounding box, centroid, and point count to the respective lists
+                    # Manually remove large box for some objects
+                    dimensions = max_coords - min_coords
+                    # volume = dimensions[0] * dimensions[1] * dimensions[2]
+                    if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
+                        continue
+                    # Manually remove small box for some objects
+                    elif tag in (1, 4, 8):
+                        area = np.asarray(points)[:, 0:2]
+                        cat_instances[tag].append((min_coords, max_coords, centroid, area))
+                    else:
+                        cat_instances[tag].append((min_coords, max_coords, centroid))
 
-        # DBSCAN Cluster the points
-        clusters = np.array(pcd.cluster_dbscan(eps=0.5, min_points=bound_dict[tag][0], print_progress=True))
-
-        # Get unique clusters
-        unique_cluster = np.unique(clusters)
-
-        # Create bounding boxes for each cluster
-        for cluster in unique_cluster:
-            cluster_indices = np.where(clusters == cluster)[0]
-            cluster_points = points[cluster_indices, :]
-
-            # Compute bounding box
-            min_coords = np.min(cluster_points, axis=0)
-            max_coords = np.max(cluster_points, axis=0)
-
-            # Compute centroid
-            centroid = np.mean(cluster_points, axis=0)
-
-            # Get point count
-            point_count = len(cluster_points)
-
-            # Create bounding box geometry
-            bbox = create_bounding_box(min_coords, max_coords)
-
-            # Add bounding box, centroid, and point count to the respective lists
-            # Manually remove large box for some objects
-            dimensions = max_coords - min_coords
-            # volume = dimensions[0] * dimensions[1] * dimensions[2]
-            if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
-                continue
-            # Manually remove small box for some objects
-            elif tag in (1, 4, 8):
-                area = np.asarray(cluster_points)[:, 0:2]
-                cat_instances[tag].append((min_coords, max_coords, centroid, area))
-            else:
-                cat_instances[tag].append((min_coords, max_coords, centroid))
-
-            bounding_boxes.append(bbox)
-            centroids.append(centroid)
-            point_counts.append(point_count)
-            lbs.append(tag)
-
-        #############
-        # visualize #
-        #############
-        if visualize_by_cat:
-            all_geometries = [pcd]
-            color = tuple(np.random.rand(3))
-            for coords in cat_instances[tag]:
-                min_coords, max_coords = coords[0], coords[1]
-                bbox = create_bounding_box(min_coords, max_coords)
-                bbox.paint_uniform_color(color)
-                all_geometries.append(bbox)
-            o3d.visualization.draw_geometries(all_geometries)
-
-    #############
-    # visualize #
-    #############
-    # full point cloud
-    fpcd = o3d.geometry.PointCloud()
-    fpcd.points = o3d.utility.Vector3dVector(all_points)
-
-    # Visualize the original point cloud along with all bounding boxes
-    if visualize:
-        o3d.visualization.draw_geometries([fpcd] + bounding_boxes)
+                    bounding_boxes.append(bbox)
+                    centroids.append(centroid)
+                    point_counts.append(point_count)
+                    lbs.append(tag)
+                except Exception as err:
+                    print(err)
 
     # Print centroids and point counts
     for i, centroid in enumerate(centroids):
@@ -254,7 +257,7 @@ def convert_to_shapefile_poly(pgxyz_list, output_folder, output_name, crs='EPSG:
 def convert_main(filename):
     pred_path = os.path.join("av_randlanet_scfnet/results/", filename, "predictions", filename)
     bbox_dict = bbox_pcd(pred_path, visualize=False)
-    out_folder = os.path.join("av_randlanet_scfnet/results/", filename, "shapefiles")
+    out_folder = os.path.join("av_randlanet_scfnet/results/", filename, "shapefiles_v2")
     os.makedirs(out_folder, exist_ok=True)
     file_path = os.path.join(out_folder, 'bbox_dict.pkl')
     with open(file_path, 'wb') as file:
