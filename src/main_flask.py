@@ -2,7 +2,7 @@ import os
 from flask import *
 from av_randlanet_scfnet import predict_OrchardRoad
 from av_randlanet_scfnet.utils import data_prepare_orchard
-from tools import shapefile_conversion
+from tools import shapefile_conversion, shapefile_conversion_ver2
 from av_randlanet_scfnet.utils import helper_las, separate_predicted_objects
 import subprocess
 import threading
@@ -70,6 +70,7 @@ def result():
 
             # shapefile conversion
             shapefile_conversion.convert_main(f.filename)
+            shapefile_conversion_ver2.convert_main(f.filename)
 
             # copy the results to shared folder
             helper_las.copy_predictions()
