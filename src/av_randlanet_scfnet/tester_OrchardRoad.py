@@ -127,7 +127,7 @@ class ModelTester:
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
 
-                        if labels:
+                        if labels is not None:
                             write_laz_with_labels(pred_filepath, test_las, points, labels, preds)
                         else:
                             write_laz(pred_filepath, test_las, points, preds)
