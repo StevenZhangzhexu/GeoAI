@@ -55,7 +55,7 @@ class ModelTester:
         # saving_path = 'UNext/results/%s/predictions/' % filename
         # self.saving_path = saving_path
         # makedirs(saving_path, exist_ok=True)
-        log_file_path = join( self.saving_path+'/', 'log_test.txt')
+        log_file_path = join( self.saving_path+'/' , 'log_test.txt')
         if not os.path.exists(log_file_path):
             # Create the directory if it doesn't exist
             os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
@@ -170,4 +170,6 @@ class ModelTester:
     @staticmethod
     def load_test_points(file_path):
         data = read_las(file_path)
+        if 'label' in list(data.header.point_format.dimension_names):
+            return np.vstack((data.x, data.y, data.z, data.label)).T      
         return np.vstack((data.x, data.y, data.z)).T
