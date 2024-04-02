@@ -8,6 +8,7 @@ import open3d as o3d
 import numpy as np
 import laspy
 import pickle
+import traceback
 from collections import defaultdict
 
 
@@ -318,6 +319,7 @@ def convert_main(filename):
                 convert_to_shapefile_cent(centroids, out_folder, name_dict[label], crs='EPSG:3414')
     except Exception as er:
         print(er)
+        traceback.print_exc()
 
 
 if __name__ == '__main__':
