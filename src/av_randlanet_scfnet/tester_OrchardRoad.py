@@ -106,7 +106,12 @@ class ModelTester:
                     i_test = 0
                     for i, file_path in enumerate(files):
                         # Get file
-                        points = self.load_test_points(file_path)
+                        # points = self.load_test_points(file_path)
+                        data = read_las(file_path)
+                        points = np.vstack((data.x, data.y, data.z)).T
+                        labels = None
+                        if 'label' in list(data.header.point_format.dimension_names):
+                            labels = data.label
 
                         # Reproject probs
                         proj_index = dataset.test_proj[i_test]
@@ -121,10 +126,14 @@ class ModelTester:
                         # Save laz
                         test_las = read_las(file_path)
                         pred_filepath = join(saving_path, filename)
-                        # write_laz(pred_filepath, test_las, points, preds)
-                        write_laz_with_labels(pred_filepath, test_las, points, preds)
+
+                        if labels:
+                            write_laz_with_labels(pred_filepath, test_las, points, labels, preds)
+                        else:
+                            write_laz(pred_filepath, test_las, points, preds)
+
                         save_coordinates(
-                            pred_filepath[:-4], test_las, points[:3], preds)
+                            pred_filepath[:-4], test_las, points, preds)
                         log_string(pred_filepath +
                                    ' has been saved.', self.log_out)
 
@@ -145,6 +154,6 @@ class ModelTester:
     @staticmethod
     def load_test_points(file_path):
         data = read_las(file_path)
-        if 'label' in list(data.header.point_format.dimension_names):
-            return np.vstack((data.x, data.y, data.z, data.label)).T
+        # if 'label' in list(data.header.point_format.dimension_names):
+        #     return np.vstack((data.x, data.y, data.z, data.label)).T
         return np.vstack((data.x, data.y, data.z)).T
