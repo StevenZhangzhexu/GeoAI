@@ -28,7 +28,23 @@ name_dict = {
         12: 'Tree'
     }
 
+label_to_min_points = {
+                    0: 1000,
+                    1: 5000,
+                    2: 5000,
+                    3: 3000,
+                    4: 4000,
+                    5: 3000,
+                    6: 2000,
+                    7: 5000,
+                    8: 5000,
+                    9: 3000,
+                    10: 3000,
+                    11: 4000,
+                    12: 10000
+                }
 labels_with_elongations = [5, 6, 10, 11, 12]
+labels_with_orientations = [5, 6, 10]
 
 
 def create_bounding_box(min_bound, max_bound):
@@ -157,37 +173,40 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
             cluster_indices = np.where(clusters == cluster)[0]
             cluster_points = points[cluster_indices, :]
 
-            # Compute bounding box
-            min_coords = np.min(cluster_points, axis=0)
-            max_coords = np.max(cluster_points, axis=0)
+            # filter objects to checking whether a complete object
+            if len(cluster_points) >= label_to_min_points[tag]:
 
-            # Compute centroid
-            # centroid = np.mean(cluster_points, axis=0)
-            centroid = get_center_base_coords(points, tag)
+                # Compute bounding box
+                min_coords = np.min(cluster_points, axis=0)
+                max_coords = np.max(cluster_points, axis=0)
 
-            # Get point count
-            point_count = len(cluster_points)
+                # Compute centroid
+                # centroid = np.mean(cluster_points, axis=0)
+                centroid = get_center_base_coords(points, tag)
 
-            # Create bounding box geometry
-            bbox = create_bounding_box(min_coords, max_coords)
+                # Get point count
+                point_count = len(cluster_points)
 
-            # Add bounding box, centroid, and point count to the respective lists
-            # Manually remove large box for some objects
-            dimensions = max_coords - min_coords
-            # volume = dimensions[0] * dimensions[1] * dimensions[2]
-            if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
-                continue
-            # Manually remove small box for some objects
-            elif tag in (1, 4, 8):
-                area = np.asarray(cluster_points)[:, 0:2]
-                cat_instances[tag].append((min_coords, max_coords, centroid, area))
-            else:
-                cat_instances[tag].append((min_coords, max_coords, centroid))
+                # Create bounding box geometry
+                bbox = create_bounding_box(min_coords, max_coords)
 
-            bounding_boxes.append(bbox)
-            centroids.append(centroid)
-            point_counts.append(point_count)
-            lbs.append(tag)
+                # Add bounding box, centroid, and point count to the respective lists
+                # Manually remove large box for some objects
+                dimensions = max_coords - min_coords
+                # volume = dimensions[0] * dimensions[1] * dimensions[2]
+                if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
+                    continue
+                # Manually remove small box for some objects
+                elif tag in (1, 4, 8):
+                    area = np.asarray(cluster_points)[:, 0:2]
+                    cat_instances[tag].append((min_coords, max_coords, centroid, area))
+                else:
+                    cat_instances[tag].append((min_coords, max_coords, centroid))
+
+                bounding_boxes.append(bbox)
+                centroids.append(centroid)
+                point_counts.append(point_count)
+                lbs.append(tag)
 
         #############
         # visualize #
