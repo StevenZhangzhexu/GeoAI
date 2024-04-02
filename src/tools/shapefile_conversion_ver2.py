@@ -141,7 +141,7 @@ def bbox_pcd(filename):
     for tag in name_dict.keys():
         print('tag', tag, 'class', name_dict[tag])
         for fname in os.listdir(directory_path):
-            if tag in fname and not fname.endswith("_WGS84.laz"):
+            if name_dict[tag] in fname and not fname.endswith("_WGS84.laz"):
                 try:
                     laz_file_path = os.path.join(directory_path, fname)
                     bbox = get_kitti_bbox_info(laz_file_path)
