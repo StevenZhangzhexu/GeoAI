@@ -256,7 +256,7 @@ def convert_to_shapefile_poly(pgxyz_list, output_folder, output_name, crs='EPSG:
 
 def convert_main(filename):
     pred_path = os.path.join("av_randlanet_scfnet/results/", filename, "predictions", filename)
-    bbox_dict = bbox_pcd(pred_path, visualize=False)
+    bbox_dict = bbox_pcd(pred_path)
     out_folder = os.path.join("av_randlanet_scfnet/results/", filename, "shapefiles_v2")
     os.makedirs(out_folder, exist_ok=True)
     file_path = os.path.join(out_folder, 'bbox_dict.pkl')
