@@ -110,13 +110,9 @@ def get_center_base_coords(coordinates, label_id):
         center_coordinate = np.mean(coordinates, axis=0)
     print(center_coordinate)
 
-    center = {
-        'x': center_coordinate[0],
-        'y': center_coordinate[1],
-        'z': base_point[2],
-    }
+    base_center = [center_coordinate[0], center_coordinate[1], base_point[2]]
 
-    return center
+    return np.asarray(base_center)
 
 
 def bbox_pcd(filename):
