@@ -292,29 +292,32 @@ def convert_to_shapefile_poly(pgxyz_list, output_folder, output_name, crs='EPSG:
 
 
 def convert_main(filename):
-    pred_path = os.path.join("av_randlanet_scfnet/results/", filename, "predictions", filename)
-    bbox_dict = bbox_pcd(pred_path, visualize=False)
-    out_folder = os.path.join("av_randlanet_scfnet/results/", filename, "shapefiles_v3")
-    os.makedirs(out_folder, exist_ok=True)
-    file_path = os.path.join(out_folder, 'bbox_dict.pkl')
-    with open(file_path, 'wb') as file:
-        pickle.dump(bbox_dict, file)
+    try:
+        pred_path = os.path.join("av_randlanet_scfnet/results/", filename, "predictions", filename)
+        bbox_dict = bbox_pcd(pred_path, visualize=False)
+        out_folder = os.path.join("av_randlanet_scfnet/results/", filename, "shapefiles_v3")
+        os.makedirs(out_folder, exist_ok=True)
+        file_path = os.path.join(out_folder, 'bbox_dict.pkl')
+        with open(file_path, 'wb') as file:
+            pickle.dump(bbox_dict, file)
 
-    keys = sorted(bbox_dict.keys())
-    for label in tqdm(keys, desc="Exporting Shapefile"):
-        print(f'Processing {name_dict[label]} shape file')
-        pgxyz_list =[]
-        if label in (1, 4, 8):
-            areas = [bbox_dict[label][i][3] for i in range(len(bbox_dict[label]))]
-            for area in areas:
-                vector = ash.alphashape(area, alpha=0.5)
-                pgxyz_list.append(vector)
-            convert_to_shapefile_poly(pgxyz_list, out_folder, name_dict[label], crs='EPSG:3414')
-        else:
-            centroids = [bbox_dict[label][i][2] for i in range(len(bbox_dict[label]))]
-            if not centroids:
-                continue  # some pred points exist but could not form an object, skip
-            convert_to_shapefile_cent(centroids, out_folder, name_dict[label], crs='EPSG:3414')
+        keys = sorted(bbox_dict.keys())
+        for label in tqdm(keys, desc="Exporting Shapefile"):
+            print(f'Processing {name_dict[label]} shape file')
+            pgxyz_list =[]
+            if label in (1, 4, 8):
+                areas = [bbox_dict[label][i][3] for i in range(len(bbox_dict[label]))]
+                for area in areas:
+                    vector = ash.alphashape(area, alpha=0.5)
+                    pgxyz_list.append(vector)
+                convert_to_shapefile_poly(pgxyz_list, out_folder, name_dict[label], crs='EPSG:3414')
+            else:
+                centroids = [bbox_dict[label][i][2] for i in range(len(bbox_dict[label]))]
+                if not centroids:
+                    continue  # some pred points exist but could not form an object, skip
+                convert_to_shapefile_cent(centroids, out_folder, name_dict[label], crs='EPSG:3414')
+    except Exception as er:
+        print(er)
 
 
 if __name__ == '__main__':
