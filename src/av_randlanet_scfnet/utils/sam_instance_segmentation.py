@@ -95,11 +95,11 @@ def separate_and_cluster_point_cloud_objects(segment_file, output_dir):
                     output_filepath, coordinates, label_id)
                 object_coords.append({
                     "id": seg_name + "_" + str(i),
-                    # "coords": bc_coord
                     "start": calc_coords[0],
                     "end": calc_coords[1],
                     "center": calc_coords[2],
-                    "orientation": calc_coords[3]
+                    "orientation": calc_coords[3],
+                    "min_dist": calc_coords[4]
                 })
                 i += 1
         except Exception as err:

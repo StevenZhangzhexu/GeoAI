@@ -79,7 +79,7 @@ def get_closest_road_center(object_center):
             min_dist = dist
 
     print("Closest point:", closest_point, " , distance:", min_dist)
-    return closest_point
+    return closest_point, min_dist
 
 
 def get_axes_orientation_by_unit_vector(point1, point2):
@@ -144,20 +144,14 @@ def get_start_end_center_base_coords(coordinates, label_id):
         center_coordinate = np.mean(coordinates, axis=0)
     print(center_coordinate)
 
+    # bc = get_base_center_coord(coordinates)
+    bc = [center_coordinate[0], center_coordinate[1], base_point[2]]    # considering labels with elongations and others
+    cc, closest_dist = get_closest_road_center(bc)
+
     if label_id in labels_with_orientations:
-        bc = get_base_center_coord(coordinates)
-        cc = get_closest_road_center(bc)
         orientations = get_axes_orientation_by_unit_vector(bc, cc)
     else:
         orientations = [0, 0, 0]
-
-    # base_center_coord = {
-    #         'x': center_coordinate[0],
-    #         'y': center_coordinate[1],
-    #         # 'z': center_coordinate[2],
-    #         'z': base_point[2],
-    # }
-    # print(base_center_coord)
 
     start = {
         'x': start_coordinate[0],
@@ -180,7 +174,7 @@ def get_start_end_center_base_coords(coordinates, label_id):
         'z': orientations[2]
     }
 
-    return start, end, center, orientation
+    return start, end, center, orientation, closest_dist
 
 
 def get_road_coordinates(coordinates):
