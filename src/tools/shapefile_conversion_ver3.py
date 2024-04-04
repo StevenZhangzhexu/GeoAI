@@ -135,7 +135,7 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
     # read file #
     ############
     las_data = laspy.read(pc_path)
-    all_points = np.vstack((las_data.x, las_data.y, las_data.z)).T
+    # all_points = np.vstack((las_data.x, las_data.y, las_data.z)).T
     labels = las_data.pred  # #Classification
     # max bbox vol
     all_points = np.column_stack((las_data.x, las_data.y, las_data.z))
