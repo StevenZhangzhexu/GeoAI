@@ -15,16 +15,16 @@ from collections import defaultdict
 name_dict = {
         0: 'Bollard',
         1: 'Building',
-        2: 'Bus Stop',
-        3: 'Control Box',
+        2: 'BusStop',
+        3: 'ControlBox',
         4: 'Ground',
-        5: 'Lamp Post',
+        5: 'LampPost',
         6: 'Pole',
         7: 'Railing',
         8: 'Road',
         9: 'Shrub',
         10: 'Sign',
-        11: 'Solar Panel',
+        11: 'SolarPanel',
         12: 'Tree'
     }
 
@@ -174,39 +174,39 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
             cluster_points = points[cluster_indices, :]
 
             # filter objects to checking whether a complete object
-            if len(cluster_points) >= label_to_min_points[tag]:
+            # if len(cluster_points) >= label_to_min_points[tag]:
 
-                # Compute bounding box
-                min_coords = np.min(cluster_points, axis=0)
-                max_coords = np.max(cluster_points, axis=0)
+            # Compute bounding box
+            min_coords = np.min(cluster_points, axis=0)
+            max_coords = np.max(cluster_points, axis=0)
 
-                # Compute centroid
-                # centroid = np.mean(cluster_points, axis=0)
-                centroid = get_center_base_coords(points, tag)
+            # Compute centroid
+            # centroid = np.mean(cluster_points, axis=0)
+            centroid = get_center_base_coords(points, tag)
 
-                # Get point count
-                point_count = len(cluster_points)
+            # Get point count
+            point_count = len(cluster_points)
 
-                # Create bounding box geometry
-                bbox = create_bounding_box(min_coords, max_coords)
+            # Create bounding box geometry
+            bbox = create_bounding_box(min_coords, max_coords)
 
-                # Add bounding box, centroid, and point count to the respective lists
-                # Manually remove large box for some objects
-                dimensions = max_coords - min_coords
-                # volume = dimensions[0] * dimensions[1] * dimensions[2]
-                if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
-                    continue
-                # Manually remove small box for some objects
-                elif tag in (1, 4, 8):
-                    area = np.asarray(cluster_points)[:, 0:2]
-                    cat_instances[tag].append((min_coords, max_coords, centroid, area))
-                else:
-                    cat_instances[tag].append((min_coords, max_coords, centroid))
+            # Add bounding box, centroid, and point count to the respective lists
+            # Manually remove large box for some objects
+            dimensions = max_coords - min_coords
+            # volume = dimensions[0] * dimensions[1] * dimensions[2]
+            if tag not in (4, 8) and np.any(dimensions > 0.6 * max_dimensions):
+                continue
+            # Manually remove small box for some objects
+            elif tag in (1, 4, 8):
+                area = np.asarray(cluster_points)[:, 0:2]
+                cat_instances[tag].append((min_coords, max_coords, centroid, area))
+            else:
+                cat_instances[tag].append((min_coords, max_coords, centroid))
 
-                bounding_boxes.append(bbox)
-                centroids.append(centroid)
-                point_counts.append(point_count)
-                lbs.append(tag)
+            bounding_boxes.append(bbox)
+            centroids.append(centroid)
+            point_counts.append(point_count)
+            lbs.append(tag)
 
         #############
         # visualize #
@@ -297,7 +297,7 @@ def convert_to_shapefile_poly(pgxyz_list, output_folder, output_name, crs='EPSG:
         print(f"{output_name} GeoDataFrame is empty")
         return
    
-   # Create the output folder if it doesn't exist
+    # Create the output folder if it doesn't exist
     output_shapefile = os.path.join(output_folder, f"{output_name}.shp")
     output_folder = os.path.dirname(output_shapefile)
     os.makedirs(output_folder, exist_ok=True)
