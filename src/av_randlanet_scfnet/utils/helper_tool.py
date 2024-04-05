@@ -25,12 +25,12 @@ class ConfigOrchardRoad:
     num_points = 40960  # 65536 (RandLA-Net)  # Number of input points
     num_classes = 13  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = False     # Use RGB
-    use_intensity = False   # Use intensity
+    use_rgb = True     # Use RGB
+    use_intensity = True   # Use intensity
     resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
-    val_batch_size = 14  # batch_size during validation and test
+    val_batch_size = 4  # batch_size during validation and test
     train_steps = 500  # Number of steps per epochs
     val_steps = 25  # Number of validation steps per epoch
 
@@ -39,7 +39,7 @@ class ConfigOrchardRoad:
 
     noise_init = 3.5  # noise initial parameter
     max_epoch = 100  # maximum epoch during training
-    learning_rate = 1e-2  # initial learning rate
+    learning_rate = 1e-3  # initial learning rate
     lr_decays = {i: 0.95 for i in range(0, 500)}  # decay rate of learning rate
 
     train_sum_dir = 'train_log'
