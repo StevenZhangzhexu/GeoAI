@@ -25,8 +25,8 @@ class ConfigOrchardRoad:
     num_points = 40960  # 65536 (RandLA-Net)  # Number of input points
     num_classes = 13  # Number of valid classes
     sub_grid_size = 0.06  # preprocess_parameter
-    use_rgb = True     # Use RGB
-    use_intensity = True   # Use intensity
+    use_rgb = False     # Use RGB
+    use_intensity = False   # Use intensity
     resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
