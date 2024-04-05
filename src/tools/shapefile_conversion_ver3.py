@@ -163,7 +163,8 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
         points = np.asarray(pcd.points)
 
         # DBSCAN Cluster the points
-        clusters = np.array(pcd.cluster_dbscan(eps=0.5, min_points=bound_dict[tag][0], print_progress=True))
+        # clusters = np.array(pcd.cluster_dbscan(eps=0.5, min_points=bound_dict[tag][0], print_progress=True))
+        clusters = np.array(pcd.cluster_dbscan(eps=0.5, min_points=10, print_progress=True))
 
         # Get unique clusters
         unique_cluster = np.unique(clusters)
@@ -173,7 +174,7 @@ def bbox_pcd(pc_path, visualize=False, visualize_by_cat=False):
             cluster_indices = np.where(clusters == cluster)[0]
             cluster_points = points[cluster_indices, :]
 
-            # filter objects to checking whether a complete object
+            # filter objects to checking whether a complete object, not applicable for downsampled
             # if len(cluster_points) >= label_to_min_points[tag]:
 
             # Compute bounding box
