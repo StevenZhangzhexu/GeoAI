@@ -30,7 +30,7 @@ class ConfigOrchardRoad:
     resume = False   # resume from checkpoint
 
     batch_size = 4  # batch_size during training
-    val_batch_size = 4  # batch_size during validation and test
+    val_batch_size = 14  # batch_size during validation and test
     train_steps = 500  # Number of steps per epochs
     val_steps = 25  # Number of validation steps per epoch
 
