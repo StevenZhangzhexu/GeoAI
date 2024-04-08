@@ -52,18 +52,20 @@ def write_laz_inf(save_filepath, original_las, points, preds):
     if not save_filepath.endswith('.laz'):
         save_filepath = save_filepath + '.laz'
 
+    # Define a list of attributes to transfer
+    attributes_to_transfer = list(original_las.point_format.dimension_names)
+    # print(attributes_to_transfer)
+
     # 1. Create a new header
     header = laspy.LasHeader(point_format=3, version="1.2")
     header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
-    header.offsets = np.min(points, axis=0)
+    if 'label' in attributes_to_transfer:
+        header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
+    header.offsets = np.min(points[:, :3], axis=0)
     header.scales = np.array([0.1, 0.1, 0.1])
 
     # 2. Create a Las
     las_writer = laspy.LasData(header)
-
-    # Define a list of attributes to transfer
-    attributes_to_transfer = list(original_las.point_format.dimension_names)
-    print(attributes_to_transfer)
 
     # Transfer attributes from split_laz to las_writer
     for attr_name in attributes_to_transfer:
@@ -72,6 +74,8 @@ def write_laz_inf(save_filepath, original_las, points, preds):
     las_writer.x = points[:, 0]
     las_writer.y = points[:, 1]
     las_writer.z = points[:, 2]
+    if 'label' in attributes_to_transfer:
+        las_writer.label = points[:, 3]
     las_writer.pred = preds
 
     las_writer.write(save_filepath)
