@@ -61,7 +61,7 @@ def prepare_custom_data(pc_names, path):
 # --------------semantic segmentation----------------
 
 
-def viz_pred_semseg(filename):
+def viz_pred_semseg(filename, visualize=False):
     v = ml3d.vis.Visualizer()
     lut = ml3d.vis.LabelLUT()
     for val in sorted(orchard_labels.keys()):
@@ -79,10 +79,11 @@ def viz_pred_semseg(filename):
     pc_names = [filename]
     pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
 
-    print("Visualizing Semseg predictions...")
-    v.visualize(pcs_with_pred)
+    if visualize:
+        print("Visualizing Semseg predictions...")
+        v.visualize(pcs_with_pred)
 
-    print("Visualizing Bounding Boxes...")
+    print("Preparing Bounding Boxes...")
     path = os.path.join(chosen_folder,pc_names[0])
     bbox_dict = bbox_pcd(path)
     file_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
