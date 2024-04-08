@@ -1,7 +1,6 @@
 import laspy
 import numpy as np
-# from pyproj import Proj, itransform
-import shutil
+from pyproj import Proj, itransform
 from distutils.dir_util import copy_tree
 
 
@@ -120,7 +119,7 @@ def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="
 
     # save files
     if file_format == "laz":
-        write_laz(save_path + "_WGS84.laz", original_laz, wgs84_points, preds)
+        write_laz_inf(save_path + "_WGS84.laz", original_laz, wgs84_points, preds)
     elif file_format == "txt":
         np.savetxt(save_path + "_SVY21.txt", svy21_points,
                    delimiter=',', newline='\n')
@@ -128,14 +127,8 @@ def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="
                    delimiter=',', newline='\n')
 
 
-
-
 def copy_predictions():
     print("Copying the predicted results to ftp...")
-    from_directory = "av_randlanet_scfnet/results/"
-    # from_file = os.path.join("av_randlanet_scfnet/results/%s/predictions/" % f.filename, f.filename[:-4] + ".laz")
+    from_directory = "UNext/results/"
     to_directory = "/home/pc1/shared"
     copy_tree(from_directory, to_directory)
-    # shutil.copy(from_file, to_directory)
-
-

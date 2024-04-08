@@ -164,13 +164,6 @@ def copy_predictions():
     # shutil.copy(from_file, to_directory)
 
 
-def copy_predictions_unext():
-    print("Copying the predicted results to ftp...")
-    from_directory = "UNext/results/"
-    to_directory = "/home/pc1/shared"
-    copy_tree(from_directory, to_directory)
-
-
 def save_segment_object_bc_coords(filename, all_objects):
     svy21_points = get_laz_points(os.path.join(
         'av_randlanet_scfnet/results/%s/predictions/' % filename, filename))
