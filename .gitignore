@@ -159,12 +159,11 @@ cython_debug/
 *.idea/
 
 *.DS_STORE
-*results/
 *data/
 
 
 # model & pred files & precessed data
-checkpoints/
-test_inputs/
-results/
-train_log/
+*checkpoints/
+*test_inputs/
+*results/
+*train_log/
