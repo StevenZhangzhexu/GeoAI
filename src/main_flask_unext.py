@@ -1,7 +1,8 @@
 import os
 from flask import *
 from UNext import main_Unext_infer
-from av_randlanet_scfnet.utils import data_prepare_orchard, helper_las
+from av_randlanet_scfnet.utils import data_prepare_orchard
+from UNext.utils import helper_las
 import subprocess
 from tools.convert_shp import convert
 import pickle
@@ -51,7 +52,7 @@ def result():
             chosen_folder = main_Unext_infer.predict(filepath=file_path,uploadpath=upload_path, id=3)
 
             # copy the results to shared folder
-            helper_las.copy_predictions_unext()
+            helper_las.copy_predictions()
 
             # post-process
             subprocess.run(['/home/steven/miniconda3/envs/open3d/bin/python',
@@ -65,7 +66,7 @@ def result():
             convert(bbox_dict, folder=shp_folder)
 
             # copy the results to shared folder
-            helper_las.copy_predictions_unext()
+            helper_las.copy_predictions()
 
             print("All finished!")
 
