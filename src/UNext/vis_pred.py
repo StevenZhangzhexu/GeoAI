@@ -45,28 +45,39 @@ def prepare_custom_data(pc_names, path):
     for i, name in enumerate(pc_names):
         pc_path = join(path, name)
         pcd = laspy.read(pc_path)
-        points = np.vstack((pcd.x, pcd.y, pcd.z)).transpose()
-
-        data = {
+        if 'label' in list(pcd.header.point_format.dimension_names):
+            points = np.vstack((pcd.x, pcd.y, pcd.z, pcd.label)).T 
+            data = {
+            'name': "OrchardRoad_RandLAnet",
+            'points': points,
+            'feat': pcd.intensity,
+            'label': pcd.label,
+            'pred': pcd.pred,
+            }
+        else:
+            points = np.vstack((pcd.x, pcd.y, pcd.z)).T
+            data = {
             'name': "OrchardRoad_RandLAnet",
             'points': points,
             'feat': pcd.intensity,
             'pred': pcd.pred,
-        }
-        pc_data.append(data)
+            }
+         
 
-    return pc_data
+        
+        pc_data.append(data)
+    
+    if  'label' in list(pcd.header.point_format.dimension_names):
+        return pc_data, set(pcd.label), set(pcd.pred)
+
+
+    return pc_data, set(), set(pcd.pred)
 
 
 # --------------semantic segmentation----------------
 
 
-def viz_pred_semseg(filename, visualize=False):
-    v = ml3d.vis.Visualizer()
-    lut = ml3d.vis.LabelLUT()
-    for val in sorted(orchard_labels.keys()):
-        lut.add_label(orchard_labels[val], val)
-    v.set_lut("pred", lut)
+def viz_pred_semseg(filename):
 
     results_dir = 'UNext/results'
     # List directories in UNext/results
@@ -77,19 +88,27 @@ def viz_pred_semseg(filename, visualize=False):
     latest_folder = directories[0]
     chosen_folder = os.path.join(results_dir, latest_folder)
     pc_names = [filename]
-    pcs_with_pred = prepare_custom_data(pc_names, chosen_folder)
+    pcs_with_pred , lbs, pds = prepare_custom_data(pc_names, chosen_folder)
 
-    if visualize:
-        print("Visualizing Semseg predictions...")
-        v.visualize(pcs_with_pred)
+    print("Visualizing Semseg predictions...")
+    v = ml3d.vis.Visualizer()
+    lut1 = ml3d.vis.LabelLUT()
+    lut2 = ml3d.vis.LabelLUT()
+    for val, label_name in orchard_labels.items():
+        if val in lbs:
+            lut1.add_label(label_name, val)
+        if val in pds:
+            lut2.add_label(label_name, val)
+    v.set_lut("labels", lut1)
+    v.set_lut("pred", lut2)
+    v.visualize(pcs_with_pred)
 
-    print("Preparing Bounding Boxes...")
+    print("Visualizing Bounding Boxes...")
     path = os.path.join(chosen_folder,pc_names[0])
     bbox_dict = bbox_pcd(path)
     file_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
     with open(file_path, 'wb') as file:
         pickle.dump(bbox_dict, file)
-
 
 if __name__ == "__main__":
 
