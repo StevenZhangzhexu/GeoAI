@@ -11,5 +11,6 @@ tensorboard==1.15.*
 geopandas
 alphashape
 pyproj
+centerline
 
 # cloth-simulation-filter

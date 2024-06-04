@@ -1,13 +1,14 @@
 from os import makedirs
 from os.path import exists, join
-from UNext.utils.helper_las import read_las, write_laz_inf #, save_coordinates
+from UNext.utils.helper_las import read_las, update_laz_inf, write_output #, save_coordinates
 from sklearn.metrics import confusion_matrix
-from helper_tool import DataProcessing as DP
+from UNext.utils.helper_tool import DataProcessing as DP
 import tensorflow.compat.v1 as tf
 import os
 tf.disable_v2_behavior()
 import numpy as np
 import time
+import glob
 
 
 def log_string(out_str, log_out):
@@ -17,24 +18,21 @@ def log_string(out_str, log_out):
 
 
 class ModelTester:
-    def __init__(self, model, dataset, config, filename, restore_snap=None):
+    def __init__(self, model, dataset, config, foldername, filename, restore_snap=None, move=0):
         self.filename = filename
+        self.foldername = foldername
+        self.pred_filepath = None
+        self.move = move
         # Tensorflow Saver definition
         my_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-
-        # print("Shapes of tensors before creating Saver:")
-        # for var in my_vars:
-        #     print(var.name, var.shape)
-
         self.saver = tf.train.Saver(my_vars, max_to_keep=100)
-
 
         # Create a session for running Ops on the Graph.
         on_cpu = False
         if on_cpu:
             c_proto = tf.ConfigProto(device_count={'GPU': 0})
         else:
-            c_proto = tf.ConfigProto()
+            c_proto = tf.ConfigProto(device_count={'GPU': 0})
             c_proto.gpu_options.allow_growth = True
         self.sess = tf.Session(config=c_proto)
         self.sess.run(tf.global_variables_initializer())
@@ -50,19 +48,17 @@ class ModelTester:
 
         self.config = config
         # Test saving path
-        self.saving_path = time.strftime('UNext/results/Pred_%Y-%m-%d_%H-%M-%S', time.gmtime())
-        makedirs(self.saving_path) if not exists(self.saving_path) else None
-        # saving_path = 'UNext/results/%s/predictions/' % filename
-        # self.saving_path = saving_path
-        # makedirs(saving_path, exist_ok=True)
+        if not move: # init
+            self.saving_path = time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_%Y-%m-%d_%H-%M-%S', time.gmtime())
+            makedirs(self.saving_path) if not exists(self.saving_path) else None
+        else:
+            self.saving_path = glob.glob(time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_*', time.gmtime()))[0]
+
         log_file_path = join( self.saving_path+'/' , 'log_test.txt')
         if not os.path.exists(log_file_path):
             # Create the directory if it doesn't exist
             os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
         self.log_out = open(log_file_path, 'a')
-
-    def chosen_folder_path(self):
-        return self.saving_path
         
     def infer(self, model, dataset, num_votes=100, id=0):
         filename = self.filename
@@ -144,14 +140,12 @@ class ModelTester:
                         preds = dataset.label_values[np.argmax(
                             probs, axis=1)].astype(np.uint8)
 
-                        # Save laz
-                        test_las = read_las(file_path)
+                        # update laz I/O
                         pred_filepath = join(self.saving_path, filename)
-                        write_laz_inf(pred_filepath, test_las, points, preds)
+                        self.pred_filepath = pred_filepath
+                        lasdata = update_laz_inf(file_path, points, preds, self.move)
                         # save_coordinates(
-                        #     pred_filepath[:-4], test_las, points, preds)
-                        log_string(pred_filepath +
-                                   ' has been saved.', self.log_out)
+                        #     pred_filepath[:-4], file_path, points, preds)                            
 
                         i_test += 1
 
@@ -159,7 +153,7 @@ class ModelTester:
                     print(
                         'Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
                     self.sess.close()
-                    return
+                    return lasdata
 
                 self.sess.run(dataset.test_init_op)
                 epoch_id += 1
@@ -173,3 +167,11 @@ class ModelTester:
         if 'label' in list(data.header.point_format.dimension_names):
             return np.vstack((data.x, data.y, data.z, data.label)).T      
         return np.vstack((data.x, data.y, data.z)).T
+
+    def write_out(self, full_lasdata):
+        if not self.pred_filepath:
+            print('Prediction Process Was Not Run!')
+        write_output(full_lasdata, self.pred_filepath)
+        log_string( 'Final pred laz file has been saved to ' + self.pred_filepath, self.log_out)
+        return
+

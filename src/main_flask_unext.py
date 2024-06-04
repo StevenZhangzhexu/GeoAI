@@ -1,12 +1,11 @@
 import os
 from flask import *
 from UNext import main_Unext_infer
-from av_randlanet_scfnet.utils import data_prepare_orchard
-from UNext.utils import helper_las
 import subprocess
 from tools.convert_shp import convert
 import pickle
 import threading
+import time
 
 
 app = Flask(__name__, static_folder='static/')
@@ -25,7 +24,7 @@ def upload():
 
         try:
             if (email.endswith("@alteredverse.net") or email.endswith("@yjpsurveyors.com")) and len(password) >= 8:
-                return render_template("main.html")
+                return render_template("main_.html")
             else:
                 return render_template("error2.html", msg="Please contact the admin for further assistance.")
         except Exception as err:
@@ -36,49 +35,39 @@ def upload():
 @app.route('/result', methods=['POST'])
 def result():
     if request.method == 'POST':
-        f = request.files['file']
-
+        # f = request.files['file']
+        files = request.files.getlist('files[]')
+        print(files)
         try:
-            # Upload file
-            upload_path = f'UNext/test_inputs/{f.filename[:-4]}'
-            file_path = os.path.join(upload_path, f.filename)
+            start_time = time.time()
+            folder_name = os.path.normpath(files[0].filename).split(os.sep)[0] #os.path.splitext(files[0].filename)[0]
+            upload_path = f'UNext/test_inputs/{folder_name}'
             os.makedirs(upload_path, exist_ok=True)
-            f.save(file_path)
-
-            # Pre-process
-            data_prepare_orchard.prepare_data(pc_path=file_path, dataset_path=upload_path)
-
-            # predict
-            chosen_folder = main_Unext_infer.predict(filepath=file_path,uploadpath=upload_path, id=3)
-
-            # copy the results to shared folder
-            helper_las.copy_predictions()
-
-            # post-process
-            subprocess.run(['/home/steven/miniconda3/envs/open3d/bin/python',
-                            'UNext/vis_pred.py', f.filename])
-
-            # shapefile conversion
-            pkl_path = os.path.join(chosen_folder, 'bbox_dict.pkl')
-            with open(pkl_path, 'rb') as file:
-                bbox_dict = pickle.load(file)
-            shp_folder = chosen_folder + '/shp'
-            convert(bbox_dict, folder=shp_folder)
-
-            # copy the results to shared folder
-            helper_las.copy_predictions()
-
+            for f in files:
+                file_path = os.path.join('UNext/test_inputs/', f.filename) # filename : 'folder/file.laz'
+                f.save(file_path)
+                main_Unext_infer.predict(filepath=file_path, uploadpath=upload_path)
+            
+            download_path = f'UNext/test_outputs/{folder_name}'
+            os.makedirs(upload_path, exist_ok=True)
+            main_Unext_infer.shape_output(file_path, download_path)
+            end_time = time.time()
+            execution_time = end_time - start_time
+            minutes = int(execution_time // 60)
+            seconds = int(execution_time % 60)
             print("All finished!")
+            print(f"Total execution time of {folder_name}: {minutes} mins {seconds} s")
+
 
             # visualize prediction
             def thread_vis():
                 print("Thread starting...")
-                subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
+                subprocess.run(['/home/steven/miniconda3/envs/vis/bin/python',
                             'tools/visualize_open3d_webrtc.py', f.filename])
                 print("Thread finishing...")
 
             # close_port.close_port(8888)
-            subprocess.run(['/home/pc1/miniconda3/envs/open3d/bin/python',
+            subprocess.run(['/home/steven/miniconda3/envs/vis/bin/python',
                             'tools/close_port.py'])
             x = threading.Thread(target=thread_vis)
             x.start()

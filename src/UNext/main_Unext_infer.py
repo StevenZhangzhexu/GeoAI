@@ -2,37 +2,73 @@ from os.path import join
 # from networks.RandLANet_UNext_mds import Network
 from UNext.networks.RandLANet_UNext_inf import Network
 from UNext.tester_infer import ModelTester
+from UNext.vectorize import bbox_to_shp, update_shp, merge_shp
 from UNext.utils.helper_ply import read_ply
-from UNext.utils.helper_tool import ConfigOrchardRoad as cfg
+from UNext.utils.helper_tool import ConfigOrchardRoad as cfg0, Config_UN_G1 as cfg1, Config_UN_G2 as cfg2
 from UNext.utils.helper_tool import DataProcessing as DP
 from UNext.utils.helper_tool import Plot
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 import numpy as np
-import time, pickle, argparse, glob, os
+import time, pickle, os
+from UNext.utils import data_prepare
 
 
 class OrchardRoad:
-    def __init__(self, filepath, uploadpath):
+    def __init__(self, filepath, uploadpath, move, cfg):
         self.name = 'OrchardRoad'
+        self.move = move
+        self.cfg = cfg
         self.path = uploadpath
-        self.label_to_names = {
-                        0: 'Bollard',
-                        1: 'Building',
-                        2: 'Bus Stop',
-                        3: 'Control Box',
-                        4: 'Ground',
-                        5: 'Lamp Post',
-                        6: 'Pole',
-                        7: 'Railing',
-                        8: 'Road',
-                        9: 'Shrub',
-                        10: 'Sign',
-                        11: 'Solar Panel',
-                        12: 'Tree'
-                    }
+        self.label_to_names_dict = {
+            0:  { # original 13 classes
+                0: 'Bollard',
+                1: 'Building',
+                2: 'Bus Stop',
+                3: 'Control Box',
+                4: 'Ground',
+                5: 'Lamp Post',
+                6: 'Pole',
+                7: 'Railing',
+                8: 'Road',
+                9: 'Shrub',
+                10: 'Sign',
+                11: 'Solar Panel',
+                12: 'Tree'
+                },
+            1:  { # Group1
+                0: 'Pole',
+                1: 'LampPost',
+                2: 'Bollard',
+                3: 'TrafficLight',
+                4: 'Hydrant',
+                5: 'ZebraBeaconPole',
+                6: 'Tree',
+                7: 'Shrub',
+                8: 'TrashBin',
+                9: 'ControlBox',
+                10: 'Barrier',
+                11: 'Railing',
+                12: 'Unclassified'
+                },
+            2:  { # Group2
+                0: 'Building',
+                1: 'BusStop',
+                2: 'Ground',
+                3: 'Road',
+                4: 'Sign',
+                5: 'SolarPanel',
+                6: 'Parapet',
+                7: 'CoveredLinkway',
+                8: 'Pathway',
+                9: 'PedestrianOverheadBridge',
+                10: 'RetainingWall',
+                11: 'Unclassified'
+                }
+        }
+        self.label_to_names = self.label_to_names_dict[move]
         self.num_classes = len(self.label_to_names)
-        self.label_values = np.sort([k for k, v in self.label_to_names.items()])
+        self.label_values = np.sort([k for k in self.label_to_names.keys()])
         self.label_to_idx = {l: i for i, l in enumerate(self.label_values)}
         self.ignored_labels = np.sort([])
 
@@ -45,7 +81,7 @@ class OrchardRoad:
         self.class_weight = {}
         self.input_trees = {'pred': []}
         self.input_colors = {'pred': []}
-        self.load_sub_sampled_clouds(cfg.sub_grid_size)
+        self.load_sub_sampled_clouds(self.cfg.sub_grid_size)
 
     def load_sub_sampled_clouds(self, sub_grid_size):
         tree_path = join(self.path, 'input_{:.3f}'.format(sub_grid_size))
@@ -63,7 +99,7 @@ class OrchardRoad:
 
             # read ply with data
             data = read_ply(sub_ply_file)
-
+            cfg = self.cfg
             # read RGB / intensity accoring to configuration
             if cfg.use_rgb and cfg.use_intensity:
                 sub_colors = np.vstack((data['red'], data['green'], data['blue'], data['intensity'])).T
@@ -100,6 +136,7 @@ class OrchardRoad:
 
     # Generate the input data flow
     def get_batch_gen(self, split='pred'):
+        cfg = self.cfg
         num_per_epoch = cfg.val_steps * cfg.val_batch_size
 
         # assign number of features according to input
@@ -181,8 +218,8 @@ class OrchardRoad:
         return gen_func, gen_types, gen_shapes
     
     # data augmentation
-    @staticmethod
-    def tf_augment_input(inputs):
+    def tf_augment_input(self,inputs):
+        cfg = self.cfg
         xyz = inputs[0]
         features = inputs[1]
         theta = tf.random.uniform((1,), minval=0, maxval=2 * np.pi)
@@ -222,9 +259,9 @@ class OrchardRoad:
         stacked_features = tf.concat([transformed_xyz, features], axis=-1)
         return stacked_features
 
-    #@staticmethod
     def get_tf_mapping2(self):
         # Collect flat inputs
+        cfg = self.cfg
         def tf_map(batch_xyz, batch_features, batch_pc_idx, batch_cloud_idx):
             #batch_features = tf.concat([batch_xyz, batch_features], axis=-1)
             batch_features = tf.map_fn(self.tf_augment_input, [batch_xyz, batch_features], dtype=tf.float32)
@@ -256,6 +293,7 @@ class OrchardRoad:
 
     def init_input_pipeline(self):
         print('Initiating prediction pipelines')
+        cfg = self.cfg
         cfg.ignored_label_inds = [self.label_to_idx[ign_label]
                                   for ign_label in self.ignored_labels]
         gen_function_test, gen_types, gen_shapes = self.get_batch_gen('pred')
@@ -275,29 +313,116 @@ class OrchardRoad:
         self.test_init_op = iter.make_initializer(self.batch_test_data)
 
 
-def predict(filepath,uploadpath, id=1):
+def predict(filepath,uploadpath):
     print("Starting prediction...")
+
+    start_time = time.time()
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-    dataset = OrchardRoad(filepath, uploadpath)
-    dataset.init_input_pipeline()
-
     file_name = filepath.split('/')[-1]
+    if 'laz' in file_name:
+        file_name = file_name[:-4]
+    folder_name = filepath.split('/')[-2]
+    cfgs = (cfg0, cfg1, cfg2)
+    full_lasdata = []
 
-    snap_path = f'UNext/checkpoints/snapshots{id}'
-    snap_steps = [int(f[:-5].split('-')[-1])
-                  for f in os.listdir(snap_path) if f[-5:] == '.meta']
-    chosen_step = np.sort(snap_steps)[-1]
-    chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+    for move in range(3): 
+        data_prepare.prepare_data(pc_path=filepath, dataset_path=uploadpath)
+        tf.reset_default_graph()
+        cfg = cfgs[move]
+        dataset = OrchardRoad(filepath, uploadpath, move, cfg)
+        dataset.init_input_pipeline()
 
-    model = Network(dataset, cfg)
+        snap_path = f'UNext/checkpoints/snapshots{move}'
+        snap_steps = [int(f[:-5].split('-')[-1])
+                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
+        chosen_step = np.sort(snap_steps)[-1]
+        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
 
-    tester = ModelTester(model, dataset, cfg, file_name,
-                         restore_snap=chosen_snap)
-    tester.infer(model, dataset, id=id)
+        model = Network(dataset, cfg)
+
+        tester = ModelTester(model, dataset, cfg, folder_name, file_name,
+                            restore_snap=chosen_snap, move=move)
+        lasdata = tester.infer(model, dataset, id=move)
+        full_lasdata.append(lasdata)
+
+        if move==0:
+            generate_shp(file_name, tester.saving_path, move, lasdata) # shape files
+        if move ==2:
+            tester.write_out(full_lasdata) # final ouput
+            generate_shp(file_name, tester.saving_path, move)
+
+
+
     print("Prediction finished!")
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time of {file_name}: ", execution_time)
 
-    return tester.chosen_folder_path()
+    # return tester.saving_path
+
+def generate_shp(filename, saving_path, move, lasdata=None):
+    name_dict = {   0: 'Pole',
+                    1: 'LampPost',
+                    2: 'Bollard',
+                    3: 'TrafficLight',
+                    4: 'Hydrant',
+                    5: 'ZebraBeaconPole',
+                    6: 'Tree',
+                    7: 'Shrub',
+                    8: 'TrashBin',
+                    9: 'ControlBox',
+                    10: 'Barrier',
+                    11: 'Railing',
+                    12: 'Building',
+                    13: 'BusStop',
+                    14: 'Ground',
+                    15: 'Road',
+                    16: 'Sign',
+                    17: 'SolarPanel',
+                    18: 'Parapet',
+                    19: 'CoveredLinkway',
+                    20: 'Pathway',
+                    21: 'PedestrianOverheadBridge',
+                    22: 'RetainingWall' 
+                    }
+
+    chosen_folder = saving_path
+    if 'laz' in filename:
+        filename = filename[:-4]
+    if move==0:
+        bbox_to_shp(filename = filename, name_dict = name_dict, output_folder = chosen_folder, las_data=lasdata)
+    else:
+        bbox_to_shp(filename = filename, name_dict = name_dict, restore=True, output_folder = chosen_folder)
+        update_shp(output_folder = chosen_folder)
+    
+
+def shape_output(filepath, download_path):
+    name_dict = {   0: 'Pole',
+                    1: 'LampPost',
+                    2: 'Bollard',
+                    3: 'TrafficLight',
+                    4: 'Hydrant',
+                    5: 'ZebraBeaconPole',
+                    6: 'Tree',
+                    7: 'Shrub',
+                    8: 'TrashBin',
+                    9: 'ControlBox',
+                    10: 'Barrier',
+                    11: 'Railing',
+                    12: 'Building',
+                    13: 'BusStop',
+                    14: 'Ground',
+                    15: 'Road',
+                    16: 'Sign',
+                    17: 'SolarPanel',
+                    18: 'Parapet',
+                    19: 'CoveredLinkway',
+                    20: 'Pathway',
+                    21: 'PedestrianOverheadBridge',
+                    22: 'RetainingWall' 
+                    }
+    merge_shp(filepath, name_dict, download_path)

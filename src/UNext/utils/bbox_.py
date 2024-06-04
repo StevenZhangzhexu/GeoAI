@@ -1,6 +1,5 @@
 import open3d as o3d
 import numpy as np
-import laspy
 # from scipy.spatial import ConvexHull
 # from scipy import stats
 from collections import defaultdict
@@ -29,54 +28,48 @@ def create_bounding_box(min_bound, max_bound):
 
     return line_set
 
-def bbox_pcd(pc_path, visualize = True, visualize_by_cat = False):
+def bbox_pcd(las_data, name_dict, visualize = False, visualize_by_cat = False, restore=False, bbox=None, skip=set()):
     # Create a list to store all bounding box geometries, centroids, and point counts
     bounding_boxes = []
     centroids = []
     point_counts = []
     lbs=[]
-    cat_instances = defaultdict(list)
-
-    name_dict = {
-                    0: 'Bollard',
-                    1: 'Building',
-                    2: 'Bus Stop',
-                    3: 'Control Box',
-                    4: 'Ground',
-                    5: 'Lamp Post',
-                    6: 'Pole',
-                    7: 'Railing',
-                    8: 'Road',
-                    9: 'Shrub',
-                    10: 'Sign',
-                    11: 'Solar Panel',
-                    12: 'Tree'
-                }
+    vol=[]
+    cat_instances = bbox if bbox else defaultdict(list)
     
     # cluster min_points, object min_points, object max_points
-    ceil = float('inf')
     bound_dict = {
-                    0: (50, 100, 150),  #'Bollard',
-                    1: (120, 120, ceil),  #'Building',
-                    2: (100, 100, 150),  #'Bus Stop',
-                    3: (70, 100, 150),  #'Control Box',
-                    4: (250, 300, ceil), #'Ground',
-                    5: (60, 80, 250),  #'Lamp Post',
-                    6: (100, 100, 150),  #'Pole' 
-                    7: (70, 50, 100),    #'Railing'
-                    8: (250, 250, ceil), #'Road',
-                    9: (150, 150, 250),  #'Shrub',
-                    10: (50, 50, 100),   #'Sign',
-                    11: (100, 100, 150), #'Solar Panel',
-                    12: (150, 200, ceil), #'Tree'
+                0: 100,
+                1: 60,
+                2: 50,
+                3: 100,
+                4: 100,
+                5: 100,
+                6: 100,
+                7: 100,
+                8: 100,
+                9: 100,
+                10: 100,
+                11: 100,
+                12: 100,
+                13: 100,
+                14: 100,
+                15: 100,
+                16: 100,
+                17: 100,
+                18: 100,
+                19: 100,
+                20: 100,
+                21: 100,
+                22: 100
                 }
 
     ############
-    # read file #
+    # input pcd #
     ############
-    las_data = laspy.read(pc_path)
     # all_points = np.vstack((las_data.x, las_data.y, las_data.z)).T
     labels = las_data.pred #   #Classification
+    tags = set(labels) - skip
     # max bbox vol
     all_points = np.column_stack((las_data.x, las_data.y, las_data.z))
     min_coords = np.min(all_points, axis=0)
@@ -85,19 +78,18 @@ def bbox_pcd(pc_path, visualize = True, visualize_by_cat = False):
     threshold_z = 0.3 * max_dimensions[2] # maxz
     mask = las_data.z < threshold_z
     
-
-    for tag in sorted(set(labels)):
+    for tag in sorted(tags):
+        if name_dict.get(tag) == 'Unclassified'  or (tag not in name_dict):
+            continue
         print('tag',tag, 'class', name_dict[tag])
-        if tag in (1,2,4,8,12):
+        if name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Railing', 'Road', 'Tree', 'Hydrant', 'Shed', 'Overpass','PedestrianOverheadBridge', 'Barrier'):
             epsilon = 1.2
-        # elif tag in (10,):
-        #     epsilon = 1
-        elif tag in (0,6,10):
+        elif name_dict[tag] in ('Bollard', 'Pole', 'Sign', 'Control Box'):
             epsilon = 0.8      
         else:
             epsilon = 0.5
 
-        if tag in (1,2,4,8):
+        if name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Shed', 'TrafficLight', 'Overpass','PedestrianOverheadBridge'): 
             class_points = las_data.points[las_data.pred == tag]
         else:
             class_points = las_data.points[(las_data.pred == tag) & mask]
@@ -118,7 +110,7 @@ def bbox_pcd(pc_path, visualize = True, visualize_by_cat = False):
         points = np.asarray(pcd.points)
 
         # DBSCAN Cluster the points  
-        clusters = np.array(pcd.cluster_dbscan(eps = epsilon, min_points = bound_dict[tag][0], print_progress=True))
+        clusters = np.array(pcd.cluster_dbscan(eps = epsilon, min_points = bound_dict[tag], print_progress=True))
 
         # Get unique clusters
         unique_cluster = np.unique(clusters)
@@ -140,27 +132,35 @@ def bbox_pcd(pc_path, visualize = True, visualize_by_cat = False):
             point_count = len(cluster_points)
 
             # Create bounding box geometry
-            bbox = create_bounding_box(min_coords, max_coords)
+            # bbox = create_bounding_box(min_coords, max_coords)
 
             # Add bounding box, centroid, and point count to the respective lists
             # Menually remove large box for some objects
             dimensions = max_coords - min_coords
-            # volume = dimensions[0] * dimensions[1] * dimensions[2]
-            if tag not in (4, 8) and np.any(dimensions > 0.5 * max_dimensions):
+            volume = dimensions[0] * dimensions[1] * dimensions[2]
+
+            # if name_dict[tag] not in ('Ground', 'Road') and np.any(dimensions > 0.5 * max_dimensions):
+            #     continue
+            if name_dict[tag] not in ('Building', 'Ground', 'Railing', 'Road','Shed', 'Overpass','PedestrianOverheadBridge', 'Barrier') and volume > 500 :
                 continue
-            elif tag==12 and max_coords[2] > threshold_z:
+            # elif name_dict[tag] == 'Tree' and max_coords[2] > threshold_z:
+            #     continue
+            elif name_dict[tag] == 'ControlBox'  and (point_count<200 and volume<1):
                 continue
             # Menually remove small box for some objects
-            elif tag in (1,2,4,8, 0,6):
+            elif name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass', 'PedestrianOverheadBridge', 'ZebraBeaconPole', 'Barrier'):
+                if point_count <2:
+                    continue
                 area = np.asarray(cluster_points)[:,0:2]
                 cat_instances[tag].append((min_coords, max_coords, centroid, area))
             else:
                 cat_instances[tag].append((min_coords, max_coords, centroid))
 
-            bounding_boxes.append(bbox)
+            # bounding_boxes.append(bbox)
             centroids.append(centroid)
             point_counts.append(point_count)
             lbs.append(tag)
+            vol.append(volume)
 
         #############
         # visualize #
@@ -179,38 +179,19 @@ def bbox_pcd(pc_path, visualize = True, visualize_by_cat = False):
     #############
     # visualize #
     #############
-    # full point cloud
-    fpcd = o3d.geometry.PointCloud()
-    fpcd.points = o3d.utility.Vector3dVector(all_points)
-
     # Visualize the original point cloud along with all bounding boxes
     if visualize:
+        fpcd = o3d.geometry.PointCloud()
+        fpcd.points = o3d.utility.Vector3dVector(all_points)
         o3d.visualization.draw_geometries([fpcd] + bounding_boxes)
 
     # Print centroids and point counts
     for i, centroid in enumerate(centroids):
-        print(f"Box {i+1} - Centroid: {centroid}, Point Count: {point_counts[i]}. Label: {lbs[i]}")
+        print(f"Box {i+1} - Centroid: {centroid}, Point Count: {point_counts[i]}. Size: {vol[i]}, Label: {lbs[i]}")
 
     print(cat_instances.keys())
          
     return cat_instances
 
 
-def compute_centroid(points):
-    # Select any three points on the arc
-    point1 = points[0]
-    point2 = points[len(points) // 2] 
-    point3 = points[-1]
-
-    # Construct two vectors
-    vector1 = point2 - point1
-    vector2 = point3 - point1
-
-    # Compute normal vector to the plane defined by these points
-    normal = np.cross(vector1, vector2)
-
-    # Compute centroid (midpoint along the normal vector)
-    centroid = point1 + 0.5 * normal  # Midpoint formula
-    
-    return centroid
 

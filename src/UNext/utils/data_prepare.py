@@ -1,12 +1,13 @@
-from av_randlanet_scfnet.utils.helper_tool import DataProcessing as DP
-from av_randlanet_scfnet.utils.helper_las import read_las
-from av_randlanet_scfnet.utils.helper_ply import write_ply
+from UNext.utils.helper_tool import DataProcessing as DP
+from UNext.utils.helper_las import read_las
+from UNext.utils.helper_ply import write_ply
 from sklearn.neighbors import KDTree
 from os.path import join, exists, dirname, abspath
 import numpy as np
 import os
 import pickle
 import sys
+import shutil
 
 BASE_DIR = dirname(abspath(__file__))
 ROOT_DIR = dirname(BASE_DIR)
@@ -14,11 +15,11 @@ sys.path.append(BASE_DIR)
 sys.path.append(ROOT_DIR)
 
 
-def prepare_data(pc_path, grid_size=0.06, dataset_path='av_randlanet_scfnet/data/orchard_road'):
-    # UTM_OFFSET = [627285, 4841948, 0]
-    # original_pc_folder = join(dataset_path, 'original_las')
+def prepare_data(pc_path, grid_size=0.06, dataset_path='UNext/data/'):
     sub_pc_folder = join(dataset_path, 'input_{:.3f}'.format(grid_size))
-    os.mkdir(sub_pc_folder) if not exists(sub_pc_folder) else None
+    if os.path.exists(sub_pc_folder):
+        shutil.rmtree(sub_pc_folder)  
+    os.mkdir(sub_pc_folder) 
 
     print(pc_path)
     file_name = pc_path.split('/')[-1][:-4]
