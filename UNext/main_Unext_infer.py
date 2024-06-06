@@ -355,8 +355,6 @@ def predict(filepath,uploadpath):
             tester.write_out(full_lasdata) # final ouput
             generate_shp(file_name, tester.saving_path, move)
 
-
-
     print("Prediction finished!")
     end_time = time.time()
     execution_time = end_time - start_time
@@ -400,7 +398,11 @@ def generate_shp(filename, saving_path, move, lasdata=None):
         update_shp(output_folder = chosen_folder)
     
 
-def shape_output(filepath, download_path):
+def shape_output(files, download_path):
+    filepaths =[]
+    for filename in files:
+        filepaths.append(os.path.join('UNext/test_inputs/', filename))
+
     name_dict = {   0: 'Pole',
                     1: 'LampPost',
                     2: 'Bollard',
@@ -425,4 +427,4 @@ def shape_output(filepath, download_path):
                     21: 'PedestrianOverheadBridge',
                     22: 'RetainingWall' 
                     }
-    merge_shp(filepath, name_dict, download_path)
+    merge_shp(filepaths, name_dict, download_path)

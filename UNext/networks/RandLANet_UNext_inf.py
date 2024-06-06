@@ -49,7 +49,7 @@ class Network:
 
             # self.class_weights = DP.get_class_weights(dataset.name, dataset.num_per_class, self.loss_type)
             self.class_weights = DP.get_class_weights(dataset.name)
-            self.Log_file = open('log_train_' + dataset.name + '.txt', 'a')
+            # self.Log_file = open('log_train_' + dataset.name + '.txt', 'a')
 
         with tf.variable_scope('layers'):
             self.logits, self.sup_list = self.inference(self.inputs, self.is_training)

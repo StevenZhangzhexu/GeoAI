@@ -121,12 +121,13 @@ def area_merge(area_dict, radius = 0):
 # -------------- main function ----------------
 
 
-def convert(bbox_dict, name_dict, folder):
-    keys = sorted(bbox_dict.keys())
+def convert(bbox_dict, name_dict, folder, skip=set()):
+    keys = bbox_dict.keys()
+    keys = sorted(keys - skip)
     print('------------------------------------') #
 
     vaules_dict = {v:k for k,v in name_dict.items()}
-    cust_values = ['Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass','PedestrianOverheadBridge','ZebraBeaconPole', 'Barrier']
+    cust_values = ['Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass','PedestrianOverheadBridge','ZebraBeaconPole', 'Barrier','CoveredLinkway','Pathway']
     cust_lb = [vaules_dict[v] for v in cust_values if v in vaules_dict]
     for label in tqdm(keys , desc= "Exporting Shapefile"):
         if label == 'Unclassified':
@@ -135,11 +136,10 @@ def convert(bbox_dict, name_dict, folder):
             print(f'Processing {name_dict[label]} shape file -- Geometry')
             area_dict = { tuple(bbox_dict[label][i][2]) :  bbox_dict[label][i][3] for i in range(len(bbox_dict[label])) }         
             if name_dict[label] == 'Road':
-                print(label)
                 pgxyz_list = area_merge(area_dict, 10)
                 # print(pgxyz_list)
                 convert_to_shapefile_lines(pgxyz_list, folder, name_dict[label], crs = 'EPSG:3414')
-            elif name_dict[label] in ('Building', 'Bus Stop','Overpass', 'PedestrianOverheadBridge', 'Ground','Railing'):
+            elif name_dict[label] in ('Building', 'Bus Stop','Overpass', 'PedestrianOverheadBridge', 'Ground','Railing','CoveredLinkway','Pathway'):
                 pgxyz_list = area_merge(area_dict, 10)
                 convert_to_shapefile_poly(pgxyz_list, folder, name_dict[label], crs = 'EPSG:3414')
             else:      
@@ -177,7 +177,7 @@ def bbox_to_shp(filename, name_dict, restore=False, output_folder = None, las_da
         pickle.dump(bbox_dict, file)
 
     shp_folder = output_folder + '/shp' 
-    convert(bbox_dict, name_dict, folder=shp_folder)
+    convert(bbox_dict, name_dict, folder=shp_folder, skip=skip)
 
 
 # -------------- post process ----------------
@@ -190,7 +190,8 @@ def update_shp(zone = None, output_folder = None):
         zone_gdf = gpd.read_file(zone)
         loc = True
     except:
-        print('No Road Found')
+        print('No Road Found', zone)
+        return
 
     ###########
     # Bus stop #
@@ -211,12 +212,6 @@ def update_shp(zone = None, output_folder = None):
                 continue
             widths.append(width)
             lengths.append(length)
-            
-            # Find the nearest point on the zone shapefile
-            # nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[1]
-            # nearest_road = zone_gdf.distance(nearest_point) < 0.0001
-            # nearest_road_name = zone_gdf[nearest_road]['RD_CD_DESC'].values[0]
-            # nearest_road_names.append(nearest_road_name)
 
         shapefile_gdf['Length'] = lengths
         shapefile_gdf['Width'] = widths
@@ -229,164 +224,46 @@ def update_shp(zone = None, output_folder = None):
     else:
         print(f'no {bsp}')
 
-    ###########
-    # Bollard #
-    ###########
-    bld = shp_folder + '/Bollard.shp'
-    if os.path.exists(bld):
-        shapefile_gdf = gpd.read_file(bld)
-        nearest_road_names = []
-        updated_geometries = []
-        for index, row in shapefile_gdf.iterrows():
-            # Get the geometry of the current line
-            line_geometry = row['geometry']
-            # print(line_geometry)
-            if loc:
-                nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[0]
-                # row['geometry'] = Point(nearest_points.xyz)
-                updated_geometry = Point(nearest_point.coords[0]) #nearest_point
-            else:
-                updated_geometry = Point(line_geometry.centroid)
-            updated_geometries.append(updated_geometry)
-                   
-            # # Find the nearest point on the zone shapefile
-            # zone_nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[1]
-            # nearest_road = zone_gdf.distance(zone_nearest_point) < 0.0001
-            # nearest_road_name = zone_gdf[nearest_road]['RD_CD_DESC'].values[0]
-
-            # # Append the nearest road name to the list
-            # nearest_road_names.append(nearest_road_name)
-
-        shapefile_gdf['geometry'] = updated_geometries 
-        # shapefile_gdf['LocatName'] = nearest_road_names
-        if shapefile_gdf.empty:
-            print(f'{bld} is empty')
-        else:
-            shapefile_gdf.to_file(bld) # update Bollard shp
-    else:
-        print(f'no {bld}')
-
+    ###################
+    # base edge point #
+    ###################
+    for shp_type in ['Bollard', 'ZebraBeaconPole', 'Pole']:
+        shp_name = f'/{shp_type}.shp'
+        shapefile_name = shp_folder + shp_name
+        convert_polyg2edgepoint(shapefile_name, zone_gdf)
     
-    #####################
-    # ZebraBeaconPole  #
-    #####################
-    pol = shp_folder + '/ZebraBeaconPole.shp'
-    if os.path.exists(pol):
-        shapefile_gdf = gpd.read_file(pol)
-        nearest_road_names = []
-        updated_geometries = []
-        for index, row in shapefile_gdf.iterrows():
-            # Get the geometry of the current line
-            line_geometry = row['geometry']
-            # print(line_geometry)
+    ###################
+    # centerline      #
+    ###################
+    for shp_type in ['Railing', 'Barrier','CoveredLinkway','Pathway']:
+        shp_name = f'/{shp_type}.shp'
+        shapefile_name = shp_folder + shp_name
+        convert_polyg2ctl(shapefile_name)
 
-            nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[0]
-            # row['geometry'] = Point(nearest_points.xyz)
-            updated_geometry = Point(nearest_point.coords[0]) #nearest_point
-            updated_geometries.append(updated_geometry)
-            
-        
-            # # Find the nearest point on the zone shapefile
-            # zone_nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[1]
-            # nearest_road = zone_gdf.distance(zone_nearest_point) < 0.0001
-            # nearest_road_name = zone_gdf[nearest_road]['RD_CD_DESC'].values[0]
+    return
 
-            # # Append the nearest road name to the list
-            # nearest_road_names.append(nearest_road_name)
-
-        shapefile_gdf['geometry'] = updated_geometries
-        # shapefile_gdf['LocatName'] = nearest_road_names
-        if shapefile_gdf.empty:
-            print(f'{pol} is empty')
-        else:
-            shapefile_gdf.to_file(pol) 
-    else:
-        print(f'no {pol}')
-
-    ###########
-    # pole    #
-    ###########
-    pol = shp_folder + '/Pole.shp'
-    if os.path.exists(pol):
-        shapefile_gdf = gpd.read_file(pol)
-        nearest_road_names = []
-        updated_geometries = []
-        for index, row in shapefile_gdf.iterrows():
-            # Get the geometry of the current line
-            line_geometry = row['geometry']
-            # print(line_geometry)
-
-            nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[0]
-            # row['geometry'] = Point(nearest_points.xyz)
-            updated_geometry = Point(nearest_point.coords[0]) #nearest_point
-            updated_geometries.append(updated_geometry)
-            
-        
-            # Find the nearest point on the zone shapefile
-            # zone_nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[1]
-            # nearest_road = zone_gdf.distance(zone_nearest_point) < 0.0001
-            # nearest_road_name = zone_gdf[nearest_road]['RD_CD_DESC'].values[0]
-
-            # # Append the nearest road name to the list
-            # nearest_road_names.append(nearest_road_name)
-
-        shapefile_gdf['geometry'] = updated_geometries
-        # shapefile_gdf['LocatName'] = nearest_road_names
-        if shapefile_gdf.empty:
-            print(f'{pol} is empty')
-        else:
-            shapefile_gdf.to_file(pol) 
-    else:
-        print(f'no {pol}')
-
-    ###########
-    # Railing  #
-    ###########
-    rl = shp_folder + '/Railing.shp'
-    if os.path.exists(rl):
-        shapefile_gdf = gpd.read_file(rl)
-        if shapefile_gdf.empty:
-            print(f'{rl} is empty')
-        else:
+def convert_polyg2edgepoint(shapefile_name, zone_gdf):
+    if os.path.exists(shapefile_name):
+        shapefile_gdf = gpd.read_file(shapefile_name)
+        if not shapefile_gdf.empty:
             updated_geometries = []
             for index, row in shapefile_gdf.iterrows():
-                # Get the geometry of the current line
                 line_geometry = row['geometry']
-                # try :
-                #     updated_geometry = Centerline(line_geometry)
-                # except:
-                #     shapefile_gdf.drop(index, inplace=True)
-                #     continue
-
-                updated_geometry = Centerline(line_geometry)
-
-                centerline_line_strings = list(updated_geometry.geoms)
-                # print(centerline_line_strings)
-                threshold_length = 0.2  # Adjust this threshold as needed
-                filtered_line_strings = [line for line in centerline_line_strings if line.length > threshold_length]
-                merged_line = linemerge(filtered_line_strings)
-                updated_geometries.append(merged_line)
-
+                nearest_point = nearest_points(line_geometry, zone_gdf.unary_union)[0]
+                updated_geometry = Point(nearest_point.coords[0])
+                updated_geometries.append(updated_geometry)
+                
             shapefile_gdf['geometry'] = updated_geometries
-            shapefile_gdf.set_geometry(col='geometry', inplace=True)
-            rl = shp_folder + '/Railing_line.shp'
-            if shapefile_gdf.empty:
-                print(f'{rl} is empty after processing')
-            else:
-                shapefile_gdf.to_file(rl) # update bus stop shp
-    else:
-        print(f'no {rl}')
-
-    
-    ###########
-    # Barrier  #
-    ###########
-    br = shp_folder + '/Barrier.shp'
-    if os.path.exists(br):
-        shapefile_gdf = gpd.read_file(br)
-        if shapefile_gdf.empty:
-            print(f'{rl} is empty')
+            shapefile_gdf.to_file(shapefile_name) 
         else:
+            print(f'{shapefile_name} is empty')
+    else:
+        print(f'no {shapefile_name}')
+
+def convert_polyg2ctl(shapefile_name):
+    if os.path.exists(shapefile_name):
+        shapefile_gdf = gpd.read_file(shapefile_name)
+        if not shapefile_gdf.empty:
             updated_geometries = []
             for index, row in shapefile_gdf.iterrows():
                 # Get the geometry of the current line
@@ -395,45 +272,51 @@ def update_shp(zone = None, output_folder = None):
                     updated_geometry = Centerline(line_geometry)
                 except:
                     shapefile_gdf.drop(index, inplace=True)
+                    print('--------------- pass ctl')
                     continue
 
-                # Extract individual LineString geometries from the MultiLineString
                 centerline_line_strings = list(updated_geometry.geoms)
                 # print(centerline_line_strings)
-                threshold_length = 0.2  # Adjust this threshold as needed
+                threshold_length = 0.01  # Adjust this threshold as needed
                 filtered_line_strings = [line for line in centerline_line_strings if line.length > threshold_length]
                 merged_line = linemerge(filtered_line_strings)
                 updated_geometries.append(merged_line)
 
             shapefile_gdf['geometry'] = updated_geometries
             shapefile_gdf.set_geometry(col='geometry', inplace=True)
-            br = shp_folder + '/Barrier.shp'
             if shapefile_gdf.empty:
-                print(f'{br} is empty')
+                print(f'{shapefile_name} is empty after processing')
             else:
-                shapefile_gdf.to_file(br) # update bus stop shp
+                shapefile_gdf.to_file(shapefile_name)
+        else:
+            print(f'{shapefile_name} is empty')
     else:
-        print(f'no {br}')
+        print(f'no {shapefile_name}')
 
-def merge_shp(filepath, name_dict, download_path):
+def merge_shp(filepaths, name_dict, download_path):
     final_bbox = defaultdict(list)
-    filename = os.path.splitext(filepath.split('/')[-1])[0]
-    folder = filepath.split('/')[-2]
-    subfolders = glob.glob(os.path.join('UNext/results', f"{folder}", f"{filename}_Pred_*"))
-    for subfolder in subfolders:
+    res_folders = []
+    for filepath in filepaths:
+        filename = os.path.splitext(filepath.split('/')[-1])[0]
+        folder = filepath.split('/')[-2]
+        subfolders = glob.glob(os.path.join('UNext/results', f"{folder}", f"{filename}_Pred_*"))
+        res_folders.append(max(subfolders, key=os.path.getctime))
+    
+    for subfolder in res_folders:
         bbox_path = os.path.join(subfolder, 'bbox_dict.pkl')
         if os.path.exists(bbox_path):
+            print('Reading', bbox_path) ##############3
             with open(bbox_path, 'rb') as f:
                 bbox_dict = pickle.load(f)
             for key, value in bbox_dict.items():
                 final_bbox[key].extend(value)
     # os.makedirs(download_path, exist_ok=True)
-    file_path = os.path.join(download_path, 'bbox_dict.pkl')
-    with open(file_path, 'wb') as file:
+    op_path = os.path.join(download_path, 'bbox_dict.pkl')
+    with open(op_path, 'wb') as file:
         pickle.dump(final_bbox, file)
     shp_folder = download_path + '/shp' 
     convert(final_bbox, name_dict, folder=shp_folder)
-    
+    update_shp(output_folder = download_path)
 
 
 

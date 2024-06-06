@@ -165,5 +165,6 @@ cython_debug/
 # model & pred files & precessed data
 *checkpoints/
 *test_inputs/
+*test_outputs/
 *results/
 *train_log/

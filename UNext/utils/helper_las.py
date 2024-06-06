@@ -1,7 +1,7 @@
 import laspy
 import numpy as np
-from pyproj import Proj, itransform
-from distutils.dir_util import copy_tree
+# from pyproj import Proj, itransform
+# from distutils.dir_util import copy_tree
 
 
 def read_las(pcd_filepath):
@@ -210,38 +210,38 @@ def update_laz_inf( file_path, points, preds, move):
 
 
 
-def convert_svy21_to_wgs84(svy21_points):
-    # Define the SVY21 projection
-    svy21_proj = Proj(init='epsg:3414')  # SVY21 Projection
+# def convert_svy21_to_wgs84(svy21_points):
+#     # Define the SVY21 projection
+#     svy21_proj = Proj(init='epsg:3414')  # SVY21 Projection
 
-    # Define the WGS 84 projection for geolocation
-    # WGS 84 (latitude, longitude) projection
-    wgs84_proj = Proj(init='epsg:4326')
+#     # Define the WGS 84 projection for geolocation
+#     # WGS 84 (latitude, longitude) projection
+#     wgs84_proj = Proj(init='epsg:4326')
 
-    # Convert SVY21 coordinates to WGS 84 geolocation
-    print("Converting points to WGS84 format...")
-    wgs84_points = itransform(svy21_proj, wgs84_proj, svy21_points)
-    wgs84_points = np.array(list(wgs84_points))
+#     # Convert SVY21 coordinates to WGS 84 geolocation
+#     print("Converting points to WGS84 format...")
+#     wgs84_points = itransform(svy21_proj, wgs84_proj, svy21_points)
+#     wgs84_points = np.array(list(wgs84_points))
 
-    return wgs84_points
-
-
-def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="laz"):
-    # convert coordinates
-    wgs84_points = convert_svy21_to_wgs84(svy21_points)
-
-    # save files
-    if file_format == "laz":
-        write_laz(save_path + "_WGS84.laz", original_laz, wgs84_points, preds)
-    elif file_format == "txt":
-        np.savetxt(save_path + "_SVY21.txt", svy21_points,
-                   delimiter=',', newline='\n')
-        np.savetxt(save_path + "_WGS84.txt", wgs84_points,
-                   delimiter=',', newline='\n')
+#     return wgs84_points
 
 
-def copy_predictions():
-    print("Copying the predicted results to ftp...")
-    from_directory = "UNext/results/"
-    to_directory = "/home/pc1/shared"
-    copy_tree(from_directory, to_directory)
+# def save_coordinates(save_path, original_laz, svy21_points, preds, file_format="laz"):
+#     # convert coordinates
+#     wgs84_points = convert_svy21_to_wgs84(svy21_points)
+
+#     # save files
+#     if file_format == "laz":
+#         write_laz(save_path + "_WGS84.laz", original_laz, wgs84_points, preds)
+#     elif file_format == "txt":
+#         np.savetxt(save_path + "_SVY21.txt", svy21_points,
+#                    delimiter=',', newline='\n')
+#         np.savetxt(save_path + "_WGS84.txt", wgs84_points,
+#                    delimiter=',', newline='\n')
+
+
+# def copy_predictions():
+#     print("Copying the predicted results to ftp...")
+#     from_directory = "UNext/results/"
+#     to_directory = "/home/pc1/shared"
+#     copy_tree(from_directory, to_directory)

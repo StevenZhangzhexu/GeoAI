@@ -141,14 +141,14 @@ def bbox_pcd(las_data, name_dict, visualize = False, visualize_by_cat = False, r
 
             # if name_dict[tag] not in ('Ground', 'Road') and np.any(dimensions > 0.5 * max_dimensions):
             #     continue
-            if name_dict[tag] not in ('Building', 'Ground', 'Railing', 'Road','Shed', 'Overpass','PedestrianOverheadBridge', 'Barrier') and volume > 500 :
+            if name_dict[tag] not in ('Building', 'Ground', 'Railing', 'Road','Shed', 'Overpass','PedestrianOverheadBridge', 'Barrier','CoveredLinkway','Pathway') and volume > 500 :
                 continue
             # elif name_dict[tag] == 'Tree' and max_coords[2] > threshold_z:
             #     continue
             elif name_dict[tag] == 'ControlBox'  and (point_count<200 and volume<1):
                 continue
             # Menually remove small box for some objects
-            elif name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass', 'PedestrianOverheadBridge', 'ZebraBeaconPole', 'Barrier'):
+            elif name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass', 'PedestrianOverheadBridge', 'ZebraBeaconPole', 'Barrier','CoveredLinkway','Pathway'):
                 if point_count <2:
                     continue
                 area = np.asarray(cluster_points)[:,0:2]

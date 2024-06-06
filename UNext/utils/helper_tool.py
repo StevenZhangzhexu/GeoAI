@@ -24,7 +24,7 @@ class ConfigOrchardRoad:
     use_intensity = False  # True   # Use intensity
     resume =   True   # resume from checkpoint
 
-    batch_size = 4 # batch_size during training
+    batch_size = 8 # batch_size during training
     val_batch_size = 14  # batch_size during validation and test
     train_steps = 300 #500  # Number of steps per epochs
     val_steps = 25  # Number of validation steps per epoch
@@ -59,9 +59,9 @@ class Config_UN_G1:
     use_intensity = True # Use intensity # True
     resume =  True #False   
     batch_size = 2 # batch_size during training
-    val_batch_size = 2  # batch_size during validation and test
+    val_batch_size = 8  # batch_size during validation and test
     train_steps = 500  # Number of steps per epochs
-    val_steps = 15 #50  # Number of validation steps per epoch
+    val_steps = 25 #50  # Number of validation steps per epoch
 
     sub_sampling_ratio = [4, 4, 4, 4, 2]  # sampling ratio of random sampling at each layer
     d_out = [16, 64, 128, 256, 512]  # feature dimension
@@ -94,9 +94,9 @@ class Config_UN_G2:
     resume =  True #False   # resume from checkpoint(orchard) - F & F for RGB & ints
 
     batch_size = 2 # batch_size during training
-    val_batch_size = 2  # batch_size during validation and test
+    val_batch_size = 8  # batch_size during validation and test
     train_steps = 500  # Number of steps per epochs
-    val_steps = 15 #25  # Number of validation steps per epoch
+    val_steps = 25  # Number of validation steps per epoch
 
     sub_sampling_ratio = [4, 4, 4, 4, 2]  # sampling ratio of random sampling at each layer
     d_out = [16, 64, 128, 256, 512]  # feature dimension

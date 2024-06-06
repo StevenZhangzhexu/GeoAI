@@ -16,7 +16,7 @@ for filename in files:
 
 download_path = f'UNext/test_outputs/{folder_name}'
 os.makedirs(download_path, exist_ok=True)
-main_Unext_infer.shape_output(file_path, download_path)
+main_Unext_infer.shape_output(files, download_path)
 
 # copy the results to shared folder
 # helper_las.copy_predictions()

@@ -27,13 +27,8 @@ class ModelTester:
         my_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
         self.saver = tf.train.Saver(my_vars, max_to_keep=100)
 
-        # Create a session for running Ops on the Graph.
-        on_cpu = False
-        if on_cpu:
-            c_proto = tf.ConfigProto(device_count={'GPU': 0})
-        else:
-            c_proto = tf.ConfigProto(device_count={'GPU': 0})
-            c_proto.gpu_options.allow_growth = True
+        c_proto = tf.ConfigProto(device_count={'GPU': 0})
+        c_proto.gpu_options.allow_growth = True
         self.sess = tf.Session(config=c_proto)
         self.sess.run(tf.global_variables_initializer())
 
@@ -52,8 +47,9 @@ class ModelTester:
             self.saving_path = time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_%Y-%m-%d_%H-%M-%S', time.gmtime())
             makedirs(self.saving_path) if not exists(self.saving_path) else None
         else:
-            self.saving_path = glob.glob(time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_*', time.gmtime()))[0]
-
+            folders = glob.glob(time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_*', time.gmtime()))
+            self.saving_path = max(folders, key=os.path.getctime)
+            
         log_file_path = join( self.saving_path+'/' , 'log_test.txt')
         if not os.path.exists(log_file_path):
             # Create the directory if it doesn't exist
