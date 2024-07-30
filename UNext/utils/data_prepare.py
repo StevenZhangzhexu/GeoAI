@@ -21,7 +21,7 @@ def prepare_data(pc_path, grid_size=0.06, dataset_path='UNext/data/'):
         shutil.rmtree(sub_pc_folder)  
     os.mkdir(sub_pc_folder) 
 
-    print(pc_path)
+    # print(pc_path)
     file_name = pc_path.split('/')[-1][:-4]
 
     pc = read_las(pc_path)
@@ -30,10 +30,12 @@ def prepare_data(pc_path, grid_size=0.06, dataset_path='UNext/data/'):
         color = np.vstack((pc.red, pc.green, pc.blue)).T.astype(np.uint8)
     except:
         color = np.zeros_like(xyz).astype(np.uint8)
+        print('No Colour in Input Data')
     try:
         intensity = pc.intensity.astype(np.uint8).reshape(-1, 1)
     except:
         intensity = np.zeros_like(pc.x).astype(np.uint8).reshape(-1, 1)
+        print('No Intensity in Input Data')
 
     #  Subsample to save space
     sub_xyz, sub_colors = DP.grid_sub_sampling(

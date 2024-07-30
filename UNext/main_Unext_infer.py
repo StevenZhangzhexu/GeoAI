@@ -3,8 +3,9 @@ from os.path import join
 from UNext.networks.RandLANet_UNext_inf import Network
 from UNext.tester_infer import ModelTester
 from UNext.vectorize import bbox_to_shp, update_shp, merge_shp
+from UNext.vectorizeRM import RM_bbox_to_shp
 from UNext.utils.helper_ply import read_ply
-from UNext.utils.helper_tool import ConfigOrchardRoad as cfg0, Config_UN_G1 as cfg1, Config_UN_G2 as cfg2
+from UNext.utils.helper_tool import ConfigOrchardRoad as cfg0, Config_UN_G1 as cfg1, Config_UN_G2 as cfg2,  ConfigRM_UN_bin as cfg3, ConfigRM_UN as cfg4
 from UNext.utils.helper_tool import DataProcessing as DP
 from UNext.utils.helper_tool import Plot
 import tensorflow.compat.v1 as tf
@@ -12,11 +13,57 @@ tf.disable_v2_behavior()
 import numpy as np
 import time, pickle, os
 from UNext.utils import data_prepare
+from UNext.utils.helper_las import gen_fullRM_input, gen_RMinput
 
+name_dict = {   0: 'Pole',
+                1: 'LampPost',
+                2: 'Bollard',
+                3: 'TrafficLight',
+                4: 'Hydrant',
+                5: 'ZebraBeaconPole',
+                6: 'Tree',
+                7: 'Shrub',
+                8: 'TrashBin',
+                9: 'ControlBox',
+                10: 'Barrier',
+                11: 'Railing',
+                12: 'Building',
+                13: 'BusStop',
+                14: 'Ground',
+                15: 'Road',
+                16: 'Sign',
+                17: 'SolarPanel',
+                18: 'Parapet',
+                19: 'CoveredLinkway',
+                20: 'Pathway',
+                21: 'PedestrianOverheadBridge',
+                22: 'RetainingWall' 
+                }
+RM_name_dict = { # RM classifier
+                0: 'TypeA',
+                1: 'TypeA4',
+                2: 'TypeB',
+                3: 'TypeC',
+                4: 'TypeD',
+                5: 'TypeD1',
+                6: 'TypeE',
+                7: 'TypeF',
+                8: 'TypeH',
+                9: 'TypeI',
+                10: 'TypeJ',
+                11: 'TypeK',
+                12: 'TypeM',
+                13: 'TypeN',
+                14: 'TypeS',
+                15: 'TypeT',
+                16: 'TypeU',
+                17: 'ChevronMarkings',
+                18: 'OthersMGWTB'
+            }
 
-class OrchardRoad:
+class Custom:
     def __init__(self, filepath, uploadpath, move, cfg):
-        self.name = 'OrchardRoad'
+        self.name = 'Custom'
         self.move = move
         self.cfg = cfg
         self.path = uploadpath
@@ -64,7 +111,12 @@ class OrchardRoad:
                 9: 'PedestrianOverheadBridge',
                 10: 'RetainingWall',
                 11: 'Unclassified'
-                }
+                },
+            3:  { # bin RM filter
+                0: 'RM',
+                1: 'Road',
+                },
+            4: RM_name_dict
         }
         self.label_to_names = self.label_to_names_dict[move]
         self.num_classes = len(self.label_to_names)
@@ -333,7 +385,7 @@ def predict(filepath,uploadpath):
         data_prepare.prepare_data(pc_path=filepath, dataset_path=uploadpath)
         tf.reset_default_graph()
         cfg = cfgs[move]
-        dataset = OrchardRoad(filepath, uploadpath, move, cfg)
+        dataset = Custom(filepath, uploadpath, move, cfg)
         dataset.init_input_pipeline()
 
         snap_path = f'UNext/checkpoints/snapshots{move}'
@@ -351,11 +403,59 @@ def predict(filepath,uploadpath):
 
         if move==0:
             generate_shp(file_name, tester.saving_path, move, lasdata) # shape files
-        if move ==2:
-            tester.write_out(full_lasdata) # final ouput
-            generate_shp(file_name, tester.saving_path, move)
 
+    tester.write_out(full_lasdata) # final ouput
+    state = generate_shp(file_name, tester.saving_path, move)      
     print("Prediction finished!")
+
+    if state != -1:
+        ########## RM ##############################
+        print("Road Markings Extraction started ...")
+        #binary filter model
+        LMpath = gen_RMinput(tester.saving_path, file_name)
+        # print('LMpath', LMpath)
+        data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
+        tf.reset_default_graph()
+        cfg = cfg3
+        dataset = Custom(LMpath, uploadpath, 3, cfg)
+        dataset.init_input_pipeline()
+        # print('update path',dataset.test_files)
+        snap_path = f'UNext/checkpoints/snapshots3'
+        snap_steps = [int(f[:-5].split('-')[-1])
+                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
+        chosen_step = np.sort(snap_steps)[-1]
+        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+        model = Network(dataset, cfg)
+        tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=3)
+        tester.infer(model, dataset, id=3) # update input
+
+        #classification model
+        data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
+        tf.reset_default_graph()
+        cfg = cfg4
+        dataset = Custom(LMpath, uploadpath, 4, cfg)
+        dataset.init_input_pipeline()
+        print('update path',dataset.test_files)
+        snap_path = f'UNext/checkpoints/snapshots4'
+        snap_steps = [int(f[:-5].split('-')[-1])
+                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
+        chosen_step = np.sort(snap_steps)[-1]
+        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+        model = Network(dataset, cfg)
+        tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=4)
+        RMdata = tester.infer(model, dataset, id=4)
+        tester.output_RM(RMdata) # final ouput
+        
+        generate_shp('RM', tester.saving_path, 4)   
+
+        print("Road Markings Extraction finished!")
+        ###################################################
+    else:
+        print('---'*21)
+        print('|',' '*25, 'Warning!',' '*25,'|')
+        print("| No road points found. Road marking extraction is disabled... |")
+        print('---'*21)
+
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Execution time of {file_name}: ", execution_time)
@@ -363,68 +463,57 @@ def predict(filepath,uploadpath):
     # return tester.saving_path
 
 def generate_shp(filename, saving_path, move, lasdata=None):
-    name_dict = {   0: 'Pole',
-                    1: 'LampPost',
-                    2: 'Bollard',
-                    3: 'TrafficLight',
-                    4: 'Hydrant',
-                    5: 'ZebraBeaconPole',
-                    6: 'Tree',
-                    7: 'Shrub',
-                    8: 'TrashBin',
-                    9: 'ControlBox',
-                    10: 'Barrier',
-                    11: 'Railing',
-                    12: 'Building',
-                    13: 'BusStop',
-                    14: 'Ground',
-                    15: 'Road',
-                    16: 'Sign',
-                    17: 'SolarPanel',
-                    18: 'Parapet',
-                    19: 'CoveredLinkway',
-                    20: 'Pathway',
-                    21: 'PedestrianOverheadBridge',
-                    22: 'RetainingWall' 
-                    }
-
     chosen_folder = saving_path
+    status = 0
     if 'laz' in filename:
         filename = filename[:-4]
     if move==0:
         bbox_to_shp(filename = filename, name_dict = name_dict, output_folder = chosen_folder, las_data=lasdata)
-    else:
+    elif move<4:
         bbox_to_shp(filename = filename, name_dict = name_dict, restore=True, output_folder = chosen_folder)
-        update_shp(output_folder = chosen_folder)
-    
+        status = update_shp(output_folder = chosen_folder)
+    elif move ==4:
+        RM_bbox_to_shp(filename = filename, name_dict = RM_name_dict, restore = False, chosen_folder = chosen_folder)
+    return status
 
-def shape_output(files, download_path):
+
+     
+
+def shape_output(files, upload_path, download_path):
     filepaths =[]
-    for filename in files:
-        filepaths.append(os.path.join('UNext/test_inputs/', filename))
+    for f in files:
+        filepaths.append(os.path.join('UNext/test_inputs/', f.filename))
+    res_folders = merge_shp(filepaths, name_dict, download_path)
+    filepath = gen_fullRM_input(res_folders, upload_path)
+    print(f'Road.laz saved to {filepath}')
+    # RM_shape_output(filepath)
 
-    name_dict = {   0: 'Pole',
-                    1: 'LampPost',
-                    2: 'Bollard',
-                    3: 'TrafficLight',
-                    4: 'Hydrant',
-                    5: 'ZebraBeaconPole',
-                    6: 'Tree',
-                    7: 'Shrub',
-                    8: 'TrashBin',
-                    9: 'ControlBox',
-                    10: 'Barrier',
-                    11: 'Railing',
-                    12: 'Building',
-                    13: 'BusStop',
-                    14: 'Ground',
-                    15: 'Road',
-                    16: 'Sign',
-                    17: 'SolarPanel',
-                    18: 'Parapet',
-                    19: 'CoveredLinkway',
-                    20: 'Pathway',
-                    21: 'PedestrianOverheadBridge',
-                    22: 'RetainingWall' 
-                    }
-    merge_shp(filepaths, name_dict, download_path)
+# def RM_shape_output(filepath, uploadpath):
+#     print("Starting prediction...")
+#     start_time = time.time()
+#     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+#     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+#     file_name = 'Road'
+#     folder_name = filepath.split('/')[-2]
+#     full_lasdata = []
+#     data_prepare.prepare_data(pc_path=filepath, dataset_path=uploadpath)
+#     tf.reset_default_graph()
+#     cfg = cfg_RM
+#     move = 0
+#     dataset = Custom(filepath, uploadpath, move, cfg)
+#     dataset.init_input_pipeline()
+
+#     snap_path = f'UNext/checkpoints/snapshotsRM'
+#     snap_steps = [int(f[:-5].split('-')[-1])
+#                 for f in os.listdir(snap_path) if f[-5:] == '.meta']
+#     chosen_step = np.sort(snap_steps)[-1]
+#     chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+
+#     model = Network(dataset, cfg)
+
+#     tester = ModelTester(model, dataset, cfg, folder_name, file_name,
+#                         restore_snap=chosen_snap, move=move)
+#     lasdata = tester.infer(model, dataset, id=move)
+#     generate_shp(file_name, tester.saving_path, move, lasdata)

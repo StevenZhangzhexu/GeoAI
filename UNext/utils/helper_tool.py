@@ -151,6 +151,74 @@ class ConfigOrchardRoad_UN:
     augment_scale_max = 1.2
     augment_noise = 0.001
 
+class ConfigRM_UN_bin:
+    k_n = 16  # KNN
+    num_layers = 5  # Number of layers
+    num_points = 65536 # 81920 # Number of input points
+    num_classes = 2 # Number of valid classes 
+    sub_grid_size = 0.06  # preprocess_parameter
+    use_rgb =  True  # Use RGB
+    use_intensity = False # Use intensity # True
+    resume =  True #False #resume from checkpoint(orchard) - F & F for RGB & ints
+
+    batch_size = 2 # batch_size during training
+    val_batch_size = 14  # batch_size during validation and test
+    train_steps = 500  # Number of steps per epochs
+    val_steps = 25 #50 # Number of validation steps per epoch
+
+    sub_sampling_ratio = [4, 4, 4, 4, 2]  # sampling ratio of random sampling at each layer
+    d_out = [16, 64, 128, 256, 512]  # feature dimension
+
+    noise_init = 3.5  # noise initial parameter
+    max_epoch = 120  # maximum epoch during training
+    learning_rate = 1e-2  # initial learning rate
+    lr_decays = {i: 0.95 for i in range(0, 500)}  # decay rate of learning rate
+
+    train_sum_dir = 'train_log'
+    saving = True
+    saving_path = None
+
+    augment_scale_anisotropic = True
+    augment_symmetries = [True, False, False]
+    augment_rotation = 'vertical'
+    augment_scale_min = 0.8
+    augment_scale_max = 1.2
+    augment_noise = 0.001
+
+class ConfigRM_UN:
+    k_n = 16  # KNN
+    num_layers = 5  # Number of layers
+    num_points = 65536 # 81920 # Number of input points
+    num_classes = 19 #20 #15  # Number of valid classes 
+    sub_grid_size = 0.06  # preprocess_parameter
+    use_rgb =  True  # Use RGB
+    use_intensity = True # Use intensity # True
+    resume =  True # resume from checkpoint(orchard) - F & F for RGB & ints
+
+    batch_size = 2 # batch_size during training
+    val_batch_size = 14  # batch_size during validation and test
+    train_steps = 500  # Number of steps per epochs
+    val_steps = 25 #50 # Number of validation steps per epoch
+
+    sub_sampling_ratio = [4, 4, 4, 4, 2]  # sampling ratio of random sampling at each layer
+    d_out = [16, 64, 128, 256, 512]  # feature dimension
+
+    noise_init = 3.5  # noise initial parameter
+    max_epoch = 120  # maximum epoch during training
+    learning_rate = 1e-2  # initial learning rate
+    lr_decays = {i: 0.95 for i in range(0, 500)}  # decay rate of learning rate
+
+    train_sum_dir = 'train_log'
+    saving = True
+    saving_path = None
+
+    augment_scale_anisotropic = True
+    augment_symmetries = [True, False, False]
+    augment_rotation = 'vertical'
+    augment_scale_min = 0.8
+    augment_scale_max = 1.2
+    augment_noise = 0.001
+
 class DataProcessing:
     @staticmethod
     def load_pc_semantic3d(filename):
@@ -315,31 +383,6 @@ class DataProcessing:
         # If class is absent, place mIoU in place of 0 IoU to get the actual mean later
         IoU += mask * mIoU
         return IoU
-
-    @staticmethod
-    def get_class_weights(dataset_name):
-        # pre-calculate the number of points in each category
-        num_per_class = []
-        if dataset_name is 'S3DIS':
-            num_per_class = np.array([3370714, 2856755, 4919229, 318158, 375640, 478001, 974733,
-                                      650464, 791496, 88727, 1284130, 229758, 2272837], dtype=np.int32)
-        elif dataset_name is 'Semantic3D':
-            num_per_class = np.array([5181602, 5012952, 6830086, 1311528, 10476365, 946982, 334860, 269353],
-                                     dtype=np.int32)
-        elif dataset_name is 'SemanticKITTI':
-            num_per_class = np.array([55437630, 320797, 541736, 2578735, 3274484, 552662, 184064, 78858,
-                                      240942562, 17294618, 170599734, 6369672, 230413074, 101130274, 476491114,
-                                      9833174, 129609852, 4506626, 1168181], dtype=np.int32)
-        elif dataset_name is 'Toronto3D':
-            num_per_class = np.array([35391894, 1449308, 4650919, 18252779, 589856, 743579, 4311631, 356463], dtype=np.int32)
-        elif dataset_name is 'OrchardRoad':
-            num_per_class = np.array([139949, 1637981, 139070, 97416, 6045740, 1926076, 11937, 549852, 64972574, 9352595, 859626, 322478, 20156805], dtype=np.int32)
-
-        weight = num_per_class / float(sum(num_per_class))
-        ce_label_weight = 1 / (weight + 0.02)
-
-        return np.expand_dims(ce_label_weight, axis=0)
-
 
 class Plot:
     @staticmethod

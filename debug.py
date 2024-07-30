@@ -3,9 +3,10 @@ from flask import *
 from UNext import main_Unext_infer
 
 # filename = 'SK_ZoneA.laz'
-folder_name = 'test_input'
+folder_name = 'Bishan' #'test_input'
 # os.makedirs(upload_path, exist_ok=True)
-files = ['test_input/SK_Test1.laz','test_input/SK_Test2.laz' ]
+# files = ['test_input/SK_Test1.laz','test_input/SK_Test2.laz' ]
+files = ['Bishan/ZoneA_20240220_BSH_000087.laz']
 for filename in files:
     # filename = file.split('/')[-1]
     upload_path = f'UNext/test_inputs/{folder_name}'

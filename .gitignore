@@ -168,3 +168,7 @@ cython_debug/
 *test_outputs/
 *results/
 *train_log/
+
+# Ignore specific debug script
+test.py
+debug.py

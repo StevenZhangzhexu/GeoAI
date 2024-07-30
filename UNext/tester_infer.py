@@ -141,7 +141,7 @@ class ModelTester:
                         self.pred_filepath = pred_filepath
                         lasdata = update_laz_inf(file_path, points, preds, self.move)
                         # save_coordinates(
-                        #     pred_filepath[:-4], file_path, points, preds)                            
+                        #     pred_filepath[:-4], file_path, points, preds)                         
 
                         i_test += 1
 
@@ -161,13 +161,25 @@ class ModelTester:
     def load_test_points(file_path):
         data = read_las(file_path)
         if 'label' in list(data.header.point_format.dimension_names):
-            return np.vstack((data.x, data.y, data.z, data.label)).T      
-        return np.vstack((data.x, data.y, data.z)).T
+            return np.vstack((data.x, data.y, data.z, data.red, data.green, data.blue, data.intensity, data.label)).T      
+        return np.vstack((data.x, data.y, data.z, data.red, data.green, data.blue, data.intensity)).T
 
     def write_out(self, full_lasdata):
         if not self.pred_filepath:
             print('Prediction Process Was Not Run!')
+            return
         write_output(full_lasdata, self.pred_filepath)
         log_string( 'Final pred laz file has been saved to ' + self.pred_filepath, self.log_out)
+        return
+    
+    def output_RM(self, las_writer):
+        if not self.pred_filepath:
+            print('Prediction Process Was Not Run!')
+            return
+        dir_path = os.path.dirname(self.pred_filepath)
+        output_file_path = os.path.join(dir_path, 'RM.laz')
+        las_writer.write(output_file_path)
+            
+        log_string( 'Road Marking laz file has been saved to ' + dir_path, self.log_out)
         return
 

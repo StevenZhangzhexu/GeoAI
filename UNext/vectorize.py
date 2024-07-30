@@ -15,6 +15,10 @@ import numpy as np
 from scipy.spatial import cKDTree
 from centerline.geometry import Centerline
 from collections import defaultdict
+import warnings
+from shapely.errors import ShapelyDeprecationWarning
+
+warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
 
 log = logging.getLogger(__name__)
 
@@ -191,7 +195,7 @@ def update_shp(zone = None, output_folder = None):
         loc = True
     except:
         print('No Road Found', zone)
-        return
+        return -1
 
     ###########
     # Bus stop #
@@ -240,7 +244,7 @@ def update_shp(zone = None, output_folder = None):
         shapefile_name = shp_folder + shp_name
         convert_polyg2ctl(shapefile_name)
 
-    return
+    return 1
 
 def convert_polyg2edgepoint(shapefile_name, zone_gdf):
     if os.path.exists(shapefile_name):
@@ -272,7 +276,6 @@ def convert_polyg2ctl(shapefile_name):
                     updated_geometry = Centerline(line_geometry)
                 except:
                     shapefile_gdf.drop(index, inplace=True)
-                    print('--------------- pass ctl')
                     continue
 
                 centerline_line_strings = list(updated_geometry.geoms)
@@ -305,7 +308,6 @@ def merge_shp(filepaths, name_dict, download_path):
     for subfolder in res_folders:
         bbox_path = os.path.join(subfolder, 'bbox_dict.pkl')
         if os.path.exists(bbox_path):
-            print('Reading', bbox_path) ##############3
             with open(bbox_path, 'rb') as f:
                 bbox_dict = pickle.load(f)
             for key, value in bbox_dict.items():
@@ -317,6 +319,8 @@ def merge_shp(filepaths, name_dict, download_path):
     shp_folder = download_path + '/shp' 
     convert(final_bbox, name_dict, folder=shp_folder)
     update_shp(output_folder = download_path)
+
+    return res_folders
 
 
 
