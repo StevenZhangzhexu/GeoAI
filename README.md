@@ -1,7 +1,7 @@
 # GeoAI Flask Application - Dev Env
 
 ## Directory Structure
-
+```
 GeoAI_UNext/
 |__ .gitignore # Ignored files and directories for Git
 |__ main_flask_unext.py # Main Flask application script
@@ -97,6 +97,7 @@ GeoAI_UNext/
 |__ knn_.o
 |__ knn.o
 |__ lib.linux-x86_64-3.6/
+```
 
 ## Installation (U-Next & Conversion)
 ```
