@@ -116,3 +116,7 @@ sh compile_op.sh
 ```
 python main_flask_unext.py
 ```
+
+## Reference
+https://github.com/zeng-ziyin/U-Next
+https://github.com/QingyongHu/RandLA-Net
