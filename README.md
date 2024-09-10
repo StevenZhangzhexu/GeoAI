@@ -1,4 +1,4 @@
-# GeoAI Flask Application - Dev Env
+# GeoAI Flask Application - MVP
 
 ## Directory Structure
 ```

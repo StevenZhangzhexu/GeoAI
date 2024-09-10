@@ -116,7 +116,27 @@ class Custom:
                 0: 'RM',
                 1: 'Road',
                 },
-            4: RM_name_dict
+            4: { # RM classifier
+                0: 'TypeA',
+                1: 'TypeA4',
+                2: 'TypeB',
+                3: 'TypeC',
+                4: 'TypeD',
+                5: 'TypeD1',
+                6: 'TypeE',
+                7: 'TypeF',
+                8: 'TypeH',
+                9: 'TypeI',
+                10: 'TypeJ',
+                11: 'TypeK',
+                12: 'TypeM',
+                13: 'TypeN',
+                14: 'TypeS',
+                15: 'TypeT',
+                16: 'TypeU',
+                17: 'ChevronMarkings',
+                18: 'OthersMGWTB'
+            }
         }
         self.label_to_names = self.label_to_names_dict[move]
         self.num_classes = len(self.label_to_names)
@@ -378,86 +398,52 @@ def predict(filepath,uploadpath):
     if 'laz' in file_name:
         file_name = file_name[:-4]
     folder_name = filepath.split('/')[-2]
-    cfgs = (cfg0, cfg1, cfg2)
-    full_lasdata = []
 
-    for move in range(3): 
-        data_prepare.prepare_data(pc_path=filepath, dataset_path=uploadpath)
-        tf.reset_default_graph()
-        cfg = cfgs[move]
-        dataset = Custom(filepath, uploadpath, move, cfg)
-        dataset.init_input_pipeline()
+    print('file_name', file_name) #file_name = 
 
-        snap_path = f'UNext/checkpoints/snapshots{move}'
-        snap_steps = [int(f[:-5].split('-')[-1])
-                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
-        chosen_step = np.sort(snap_steps)[-1]
-        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+    print("Road Markings Extraction started ...")
+    ########## RM ##############################
+    #binary filter model
+    saving_path = 'UNext/results/test_input/SLT'
+    # LMpath = gen_RMinput(saving_path, file_name)
+    # LMpath = os.path.join(uploadpath, f'binM.laz')
+    LMpath = os.path.join(uploadpath, f'SL_208.laz')
+    print('LMpath', LMpath)
+    data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
+    tf.reset_default_graph()
+    cfg = cfg3
+    dataset = Custom(LMpath, uploadpath, 3, cfg)
+    dataset.init_input_pipeline()
+    print('update path',dataset.test_files)
+    snap_path = f'UNext/checkpoints/snapshots3'
+    snap_steps = [int(f[:-5].split('-')[-1])
+                for f in os.listdir(snap_path) if f[-5:] == '.meta']
+    chosen_step = np.sort(snap_steps)[-1]
+    chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+    model = Network(dataset, cfg)
+    tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=3)
+    tester.infer(model, dataset, id=3) # update input
 
-        model = Network(dataset, cfg)
+    #classification model
+    data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
+    tf.reset_default_graph()
+    cfg = cfg4
+    dataset = Custom(LMpath, uploadpath, 4, cfg)
+    dataset.init_input_pipeline()
+    print('update path',dataset.test_files)
+    snap_path = f'UNext/checkpoints/snapshots4'
+    snap_steps = [int(f[:-5].split('-')[-1])
+                for f in os.listdir(snap_path) if f[-5:] == '.meta']
+    chosen_step = np.sort(snap_steps)[-1]
+    chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
+    model = Network(dataset, cfg)
+    tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=4)
+    RMdata = tester.infer(model, dataset, id=4)
+    tester.output_RM(RMdata) # final ouput
+    generate_shp('RM.laz', tester.saving_path,4)   
 
-        tester = ModelTester(model, dataset, cfg, folder_name, file_name,
-                            restore_snap=chosen_snap, move=move)
-        lasdata, flag = tester.infer(model, dataset, id=move)
-        if flag:
-            break
-        if not lasdata:
-            continue
-        full_lasdata.append(lasdata)
-        if move==0:
-            generate_shp(file_name, tester.saving_path, move, lasdata) # shape files
-
-    tester.write_out(full_lasdata) # final ouput
-    state = generate_shp(file_name, tester.saving_path, move)      
-    print("Prediction finished!")
-
-    if state != -1:
-        ########## RM bin ##############################
-        #binary filter model
-        LMpath = gen_RMinput(tester.saving_path, file_name)
-        # print('LMpath', LMpath)
-        data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
-        tf.reset_default_graph()
-        cfg = cfg3
-        dataset = Custom(LMpath, uploadpath, 3, cfg)
-        dataset.init_input_pipeline()
-        # print('update path',dataset.test_files)
-        snap_path = f'UNext/checkpoints/snapshots3'
-        snap_steps = [int(f[:-5].split('-')[-1])
-                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
-        chosen_step = np.sort(snap_steps)[-1]
-        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
-        model = Network(dataset, cfg)
-        tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=3)
-        _, flag = tester.infer(model, dataset, id=3) # update input
-        if flag:
-            state = -1
-            print('---'*21)
-            print('|',' '*25, 'Warning!',' '*25,'|')
-            print("| No road points found. Road marking extraction is disabled... |")
-            print('---'*21)
-        
-    if state != -1:
-        ########## RM classification model ##############################
-        print("Road Markings Extraction started ...")
-        data_prepare.prepare_data(pc_path=LMpath, dataset_path=uploadpath)
-        tf.reset_default_graph()
-        cfg = cfg4
-        dataset = Custom(LMpath, uploadpath, 4, cfg)
-        dataset.init_input_pipeline()
-        print('update path',dataset.test_files)
-        snap_path = f'UNext/checkpoints/snapshots4'
-        snap_steps = [int(f[:-5].split('-')[-1])
-                    for f in os.listdir(snap_path) if f[-5:] == '.meta']
-        chosen_step = np.sort(snap_steps)[-1]
-        chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
-        model = Network(dataset, cfg)
-        tester = ModelTester(model, dataset, cfg, folder_name, file_name, restore_snap=chosen_snap, move=4)
-        RMdata,_ = tester.infer(model, dataset, id=4)
-        tester.output_RM(RMdata) # final ouput   
-        generate_shp('RM', tester.saving_path, 4)   
-        print("Road Markings Extraction finished!")
-
+    print("Road Markings Extraction finished!")
+    ###################################################3
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Execution time of {file_name}: ", execution_time)
@@ -466,19 +452,15 @@ def predict(filepath,uploadpath):
 
 def generate_shp(filename, saving_path, move, lasdata=None):
     chosen_folder = saving_path
-    status = 0
     if 'laz' in filename:
         filename = filename[:-4]
     if move==0:
         bbox_to_shp(filename = filename, name_dict = name_dict, output_folder = chosen_folder, las_data=lasdata)
     elif move<4:
         bbox_to_shp(filename = filename, name_dict = name_dict, restore=True, output_folder = chosen_folder)
-        status = update_shp(output_folder = chosen_folder)
+        update_shp(output_folder = chosen_folder)
     elif move ==4:
         RM_bbox_to_shp(filename = filename, name_dict = RM_name_dict, restore = False, chosen_folder = chosen_folder)
-    return status
-
-
      
 
 def shape_output(files, upload_path, download_path):
@@ -490,32 +472,8 @@ def shape_output(files, upload_path, download_path):
     print(f'Road.laz saved to {filepath}')
     # RM_shape_output(filepath)
 
-# def RM_shape_output(filepath, uploadpath):
-#     print("Starting prediction...")
-#     start_time = time.time()
-#     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-#     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-#     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-#     file_name = 'Road'
-#     folder_name = filepath.split('/')[-2]
-#     full_lasdata = []
-#     data_prepare.prepare_data(pc_path=filepath, dataset_path=uploadpath)
-#     tf.reset_default_graph()
-#     cfg = cfg_RM
-#     move = 0
-#     dataset = Custom(filepath, uploadpath, move, cfg)
-#     dataset.init_input_pipeline()
-
-#     snap_path = f'UNext/checkpoints/snapshotsRM'
-#     snap_steps = [int(f[:-5].split('-')[-1])
-#                 for f in os.listdir(snap_path) if f[-5:] == '.meta']
-#     chosen_step = np.sort(snap_steps)[-1]
-#     chosen_snap = os.path.join(snap_path, 'snap-{:d}'.format(chosen_step))
-
-#     model = Network(dataset, cfg)
-
-#     tester = ModelTester(model, dataset, cfg, folder_name, file_name,
-#                         restore_snap=chosen_snap, move=move)
-#     lasdata = tester.infer(model, dataset, id=move)
-#     generate_shp(file_name, tester.saving_path, move, lasdata)
+if __name__=='__main__':
+    uploadpath = '/home/steven/Desktop/git/GeoAI_UNext/UNext/test_inputs/test_input'
+    # path = ' /home/steven/Desktop/git/GeoAI_UNext/UNext/results/test_input/SLT/binM.laz'
+    path = ' /home/steven/Desktop/git/GeoAI_UNext/UNext/results/test_input/SLT/SL_208.laz'
+    predict(path,uploadpath)

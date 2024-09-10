@@ -50,7 +50,7 @@ def result():
                 main_Unext_infer.predict(filepath=file_path, uploadpath=upload_path)
             
             # combine whole area shape
-            # download_path = os.path.join(executable_dir, 'UNext', 'test_outputs', folder_name)      
+            download_path = os.path.join(executable_dir, 'UNext', 'test_outputs', folder_name)      
             # os.makedirs(download_path, exist_ok=True)
             # main_Unext_infer.shape_output(files, upload_path, download_path)
             # print('ckp1')

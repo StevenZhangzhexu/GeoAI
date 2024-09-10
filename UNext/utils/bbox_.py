@@ -72,11 +72,6 @@ def bbox_pcd(las_data, name_dict, visualize = False, visualize_by_cat = False, r
     tags = set(labels) - skip
     # max bbox vol
     all_points = np.column_stack((las_data.x, las_data.y, las_data.z))
-    min_coords = np.min(all_points, axis=0)
-    max_coords = np.max(all_points, axis=0)
-    max_dimensions = max_coords - min_coords
-    threshold_z = 0.3 * max_dimensions[2] # maxz
-    mask = las_data.z < threshold_z
     
     for tag in sorted(tags):
         if name_dict.get(tag) == 'Unclassified'  or (tag not in name_dict):
@@ -84,17 +79,22 @@ def bbox_pcd(las_data, name_dict, visualize = False, visualize_by_cat = False, r
         print('tag',tag, 'class', name_dict[tag])
         if name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Railing', 'Road', 'Tree', 'Hydrant', 'Shed', 'Overpass','PedestrianOverheadBridge', 'Barrier'):
             epsilon = 1.2
-        elif name_dict[tag] in ('Bollard', 'Pole', 'Sign', 'Control Box'):
+        elif name_dict[tag] in ('Bollard', 'Pole', 'Sign', 'Control Box','LampPost'):
             epsilon = 0.8      
         else:
             epsilon = 0.5
 
-        if name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Shed', 'TrafficLight', 'Overpass','PedestrianOverheadBridge'): 
-            class_points = las_data.points[las_data.pred == tag]
-        else:
-            class_points = las_data.points[(las_data.pred == tag) & mask]
-         
+        class_points = las_data.points[(las_data.pred == tag) & (las_data.prob >= 0.05)]
         points = np.vstack((class_points.x, class_points.y, class_points.z)).T
+
+        # if name_dict[tag] not in ('Building', 'BusStop', 'Ground', 'Road', 'Shed', 'Tree', 'Overpass','PedestrianOverheadBridge'): 
+        #     min_coords = np.min(points, axis=0)
+        #     max_coords = np.max(points, axis=0)
+        #     max_dimensions = max_coords - min_coords
+        #     threshold_z = min_coords[2] + 0.2 * max_dimensions[2] # adjust accordingly
+        #     mask = points[:, 2] < threshold_z
+        #     points = points[mask]
+         
         # Create a PointCloud object
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points)
@@ -146,6 +146,8 @@ def bbox_pcd(las_data, name_dict, visualize = False, visualize_by_cat = False, r
             # elif name_dict[tag] == 'Tree' and max_coords[2] > threshold_z:
             #     continue
             elif name_dict[tag] == 'ControlBox'  and (point_count<200 and volume<1):
+                continue
+            elif name_dict[tag] == 'LampPost' and (volume <0.8 and point_count<200) or volume > 20:
                 continue
             # Menually remove small box for some objects
             elif name_dict[tag] in ('Building', 'BusStop', 'Ground', 'Road', 'Bollard', 'Pole', 'Railing', 'Hydrant', 'Shed', 'Overpass', 'PedestrianOverheadBridge', 'ZebraBeaconPole', 'Barrier','CoveredLinkway','Pathway'):

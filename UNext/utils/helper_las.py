@@ -21,9 +21,9 @@ def update_input(original_las, points, mask, file_path):
     header = laspy.LasHeader(point_format=3, version="1.2")
     if 'label' in attributes_input:
         header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
-    header.offsets = np.min(points[mask, :3], axis=0)
-    print('offset shape', header.offsets.shape)
-    header.scales = np.array([0.1, 0.1, 0.1])
+    # header.offsets = np.min(points[mask, :3], axis=0)
+    # print('offset shape', header.offsets.shape)
+    # header.scales = np.array([0.1, 0.1, 0.1])
     las_writer = laspy.LasData(header)
     # print(las_writer.x.shape)
     for attr_name in attributes_input:
@@ -48,19 +48,25 @@ def update_input(original_las, points, mask, file_path):
     las_writer.write(file_path)
     print("Unclassified points updated in path:", file_path)
 
-def get_output(original_las, points, preds, mask, move):
+def get_output(original_las, points, preds, probs, mask, move):
     #######################
     update_dict = {0: {4:14, 8:15, 7:11}, 1:{}, 2:{0: 12, 1: 13, 2: 14, 3: 15, 4: 16, 5: 17, 6: 18, 7: 19, 8: 20, 9: 21, 10: 22}}
     #######################
     if mask is None:
         mask = np.ones(points.shape[0], dtype=bool)
     attributes_input = list(original_las.point_format.dimension_names)
-    header = laspy.LasHeader(point_format=3, version="1.2")
-    header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
+    header = laspy.LasHeader(point_format=3, version="1.4")
+    # header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
+    # header.add_extra_dim(laspy.ExtraBytesParams(name="prob", type=np.float32))
+    header.add_extra_dims([
+    laspy.ExtraBytesParams(name="pred", type=np.int32),
+    laspy.ExtraBytesParams(name="prob", type=np.float32)
+])
+    print(probs)
     if 'label' in attributes_input:
         header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
-    header.offsets = np.min(points[mask, :3], axis=0)
-    header.scales = np.array([0.1, 0.1, 0.1])
+    # header.offsets = np.min(points[mask, :3], axis=0)
+    # header.scales = np.array([0.1, 0.1, 0.1])
     las_writer = laspy.LasData(header)
     # Transfer attributes from split_laz to las_writer
     # for attr_name in attributes_input:
@@ -68,9 +74,11 @@ def get_output(original_las, points, preds, mask, move):
     las_writer.x = points[mask, 0]
     las_writer.y = points[mask, 1]
     las_writer.z = points[mask, 2]
+    las_writer.red =  points[mask, 3]
     las_writer.green =  points[mask, 4]
     las_writer.blue =  points[mask, 5]
     las_writer.intensity =  points[mask, 6]
+    las_writer.prob = probs[mask]
     if 'label' in attributes_input:
         las_writer.label = points[mask, 7]
     if move<3:
@@ -78,6 +86,8 @@ def get_output(original_las, points, preds, mask, move):
     else:
         las_writer.pred = preds[mask]
     print(f'move:{move}, pred set:{set(las_writer.pred)}')
+    print(list(las_writer.point_format.dimension_names))
+    print('prob len', len(las_writer.prob), type(las_writer.prob))
     # print('pred len', len(las_writer.pred), type(las_writer.pred))
     # print('x len', len(las_writer.x), type(las_writer.x))
     print("Pred points saved")
@@ -90,11 +100,13 @@ def write_output(full_lasdata, output_file_path):
     points = []
     labels = [] if 'label' in attributes_input else None
     preds = []
+    probs = []
     for las_data in full_lasdata:
         points.append(np.vstack((las_data.x, las_data.y, las_data.z)).T)
         if 'label' in attributes_input:
             labels.append(las_data.label)
         preds.append(las_data.pred)
+        probs.append(las_data.prob)
     if not points:
         print(f"no points to write")
         return
@@ -104,11 +116,13 @@ def write_output(full_lasdata, output_file_path):
     if 'label' in attributes_input:
         merged_labels = np.concatenate(labels)
     merged_preds = np.concatenate(preds)
+    merged_probs = np.concatenate(probs)
 
     header = laspy.LasHeader(point_format=2, version="1.2")
     if 'label' in attributes_input:
         header.add_extra_dim(laspy.ExtraBytesParams(name="label", type=np.int32))
     header.add_extra_dim(laspy.ExtraBytesParams(name="pred", type=np.int32))
+    header.add_extra_dim(laspy.ExtraBytesParams(name="prob", type=np.float32))
     header.offsets = np.min(merged_points, axis=0)
     header.scales = np.array([0.1, 0.1, 0.1])
     las_writer = laspy.LasData(header)
@@ -118,27 +132,36 @@ def write_output(full_lasdata, output_file_path):
     if 'label' in attributes_input:
         las_writer.label = merged_labels
     las_writer.pred = merged_preds
+    las_writer.prob = merged_probs
     las_writer.write(output_file_path)
     return las_writer
 
-def update_laz_inf(file_path, points, preds, move):
+def update_laz_inf(file_path, points, preds, probs, move):
     original_las = read_las(file_path)
+    lazdata = None
+    complete = 0
     if move==0:
-        # mask = (preds != 7)
+        mask = ~np.isin(preds, (4,7,8))
         # print('len(points)', len(points))
         # print('len(preds)', len(preds))
         # print('len(mask)', len(mask))
-        # update_input(original_las, points, mask, file_path)
+        if not mask.all():
+            update_input(original_las, points, mask, file_path)
         mask = np.isin(preds, (4,7,8))
-        lazdata = get_output(original_las, points, preds, mask, move)
+        if mask.any():
+            lazdata = get_output(original_las, points, preds, probs, mask, move)
     elif move==1:
         mask = (preds == 12)
         # print('len(points)', len(points))
         # print('len(preds)', len(preds))
         # print('len(mask)', len(mask))
-        update_input(original_las, points, mask, file_path)
+        if mask.any():
+            update_input(original_las, points, mask, file_path)
+        else:
+            complete = 1
         mask = (preds != 12)
-        lazdata = get_output(original_las, points, preds, mask, move)
+        if mask.any():
+            lazdata = get_output(original_las, points, preds, probs, mask, move)
     elif move==2:
         mask = (preds == 11)
         # print('len(points)', len(points))
@@ -146,19 +169,21 @@ def update_laz_inf(file_path, points, preds, move):
         # print('len(mask)', len(mask))        
         update_input(original_las, points, mask, file_path)
         mask = (preds != 11)
-        lazdata = get_output(original_las, points, preds, mask, move) 
+        lazdata = get_output(original_las, points, preds, probs, mask, move) 
     elif move==3:
         mask = (preds == 0)
         # print('len(points)', len(points))
         # print('len(preds)', len(preds))
-        # print('len(mask)', len(mask))        
-        update_input(original_las, points, mask, file_path)
-        return
+        # print('len(mask)', len(mask))    
+        if mask.any():    
+            update_input(original_las, points, mask, file_path)
+        else:
+            complete = 1
     elif move ==4:
         mask = None
-        lazdata = get_output(original_las, points, preds, mask, move)
+        lazdata = get_output(original_las, points, preds, probs, mask, move)
  
-    return lazdata
+    return lazdata, complete
 
 def gen_fullRM_input(res_folders, upload_path):
     '''

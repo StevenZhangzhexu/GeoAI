@@ -48,7 +48,11 @@ class ModelTester:
             makedirs(self.saving_path) if not exists(self.saving_path) else None
         else:
             folders = glob.glob(time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_*', time.gmtime()))
-            self.saving_path = max(folders, key=os.path.getctime)
+            if folders:
+                self.saving_path = max(folders, key=os.path.getctime)
+            else:
+                print('New Pred!')
+                self.saving_path = time.strftime(f'UNext/results/{self.foldername}/{self.filename}_Pred_%Y-%m-%d_%H-%M-%S', time.gmtime())
             
         log_file_path = join( self.saving_path+'/' , 'log_test.txt')
         if not os.path.exists(log_file_path):
@@ -135,11 +139,11 @@ class ModelTester:
                         # Get the predicted labels
                         preds = dataset.label_values[np.argmax(
                             probs, axis=1)].astype(np.uint8)
-
+                        prob_ls = np.max(probs, axis=1)
                         # update laz I/O
                         pred_filepath = join(self.saving_path, filename)
                         self.pred_filepath = pred_filepath
-                        lasdata = update_laz_inf(file_path, points, preds, self.move)
+                        lasdata, flag = update_laz_inf(file_path, points, preds, prob_ls, self.move)
                         # save_coordinates(
                         #     pred_filepath[:-4], file_path, points, preds)                         
 
@@ -149,7 +153,7 @@ class ModelTester:
                     print(
                         'Reprojection and saving done in {:.1f} s\n'.format(t2 - t1))
                     self.sess.close()
-                    return lasdata
+                    return lasdata, flag
 
                 self.sess.run(dataset.test_init_op)
                 epoch_id += 1
