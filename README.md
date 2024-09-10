@@ -101,7 +101,7 @@ GeoAI_UNext/
 
 ```
 
-## Installation (U-Next & Conversion)
+## Installation
 ```
 conda create -n server -y python=3.6
 conda activate server
@@ -112,11 +112,12 @@ cd UNext/
 sh compile_op.sh
 ```
 
-## Usage of updated GeoAI Server (U-Next & Conversion)
+## Usage
 ```
 python main_flask_unext.py
 ```
 
 ## Reference
 https://github.com/zeng-ziyin/U-Next
+
 https://github.com/QingyongHu/RandLA-Net
